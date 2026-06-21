@@ -188,24 +188,112 @@
   }
 
   // ─────────────────────────────────────────────────────────────
-  // HOW IT WORKS — STEP HIGHLIGHT ON SCROLL
+  // INTELLIGENCE ENGINE (HOW IT WORKS) SYSTEM
   // ─────────────────────────────────────────────────────────────
   function initHowItWorks() {
-    const steps = document.querySelectorAll('.how-step');
-    if (!steps.length) return;
+    const pills = document.querySelectorAll('.ie-step-pill');
+    const cards = document.querySelectorAll('.ie-visual-card');
+    const descText = document.getElementById('ie-step-desc');
+    const timeline = document.getElementById('ie-timeline');
+    
+    if (!pills.length || !cards.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.querySelector('.how-step-num')?.classList.add('active-step');
+    const stepDescriptions = [
+      "Upload or paste any JD — HireMind's AI parser extracts required skills, experience thresholds, role context, and seniority signals automatically.",
+      "Import candidate profiles from LinkedIn, CSV uploads, or direct ATS integration. Profiles are enriched with verified GitHub, LinkedIn, and web presence signals.",
+      "The 6-dimension multi-agent engine scores qualifications, availability, engageability, legitimacy, growth trajectory, and scrappiness.",
+      "Generate a unified, evidence-based Hire Probability report. Instantly view ranked candidates, DNA insights, and explainable AI logic briefs.",
+      "Reach out directly with high-confidence AI-assisted personalized messages. Share transparent matching rationale with hiring managers."
+    ];
+
+    let currentStep = 0;
+    let cycleInterval = null;
+    let isHovered = false;
+
+    function setActiveStep(index) {
+      currentStep = index;
+
+      pills.forEach((pill, i) => {
+        if (i === index) {
+          pill.classList.add('ie-active');
+          pill.setAttribute('aria-selected', 'true');
+          if (window.innerWidth <= 1024) {
+            pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
           }
-        });
-      },
-      { threshold: 0.6 }
-    );
+        } else {
+          pill.classList.remove('ie-active');
+          pill.setAttribute('aria-selected', 'false');
+        }
+      });
 
-    steps.forEach(step => observer.observe(step));
+      cards.forEach((card, i) => {
+        if (i === index) {
+          card.classList.add('ie-card-active');
+          card.setAttribute('aria-hidden', 'false');
+        } else {
+          card.classList.remove('ie-card-active');
+          card.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      if (descText && stepDescriptions[index]) {
+        descText.textContent = stepDescriptions[index];
+      }
+    }
+
+    pills.forEach((pill, idx) => {
+      pill.addEventListener('click', () => {
+        setActiveStep(idx);
+        resetCycleTimer();
+      });
+    });
+
+    function startCycleTimer() {
+      if (cycleInterval) clearInterval(cycleInterval);
+      cycleInterval = setInterval(() => {
+        if (!isHovered) {
+          let nextStep = (currentStep + 1) % pills.length;
+          setActiveStep(nextStep);
+        }
+      }, 5000);
+    }
+
+    function resetCycleTimer() {
+      startCycleTimer();
+    }
+
+    function stopCycleTimer() {
+      if (cycleInterval) {
+        clearInterval(cycleInterval);
+        cycleInterval = null;
+      }
+    }
+
+    if (timeline) {
+      timeline.addEventListener('mouseenter', () => {
+        isHovered = true;
+      });
+      timeline.addEventListener('mouseleave', () => {
+        isHovered = false;
+      });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          startCycleTimer();
+        } else {
+          stopCycleTimer();
+        }
+      });
+    }, { threshold: 0.15 });
+
+    const ieSection = document.querySelector('.ie-section');
+    if (ieSection) {
+      observer.observe(ieSection);
+    } else if (timeline) {
+      observer.observe(timeline);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────

@@ -458,53 +458,371 @@
         </div>
       </section>
 
-      <!-- ── HOW IT WORKS ── -->
-      <section class="lp-how" id="lp-how">
-        <div class="lp-container">
-          <div class="lp-section-header reveal">
-            <div class="lp-section-eyebrow">THE ENGINE</div>
-            <h2 class="lp-section-title">From Job Description to <span class="highlight">Ranked Intelligence</span></h2>
-            <p class="lp-section-subtitle">Five steps that transform a raw JD into a confidence-ranked shortlist, powered by evidence — not keywords.</p>
+      <!-- ── INTELLIGENCE ENGINE — HOW IT WORKS ── -->
+      <section class="ie-section" id="lp-how">
+        <!-- Ambient background -->
+        <div class="ie-bg" aria-hidden="true">
+          <div class="ie-grid"></div>
+          <div class="ie-gradient-orb-1"></div>
+          <div class="ie-gradient-orb-2"></div>
+          <div class="ie-gradient-orb-3"></div>
+        </div>
+
+        <div class="ie-container">
+          <!-- Section Header -->
+          <div class="ie-header reveal">
+            <div class="ie-eyebrow">THE INTELLIGENCE ENGINE</div>
+            <h2 class="ie-title">From Job Description to<br><span class="ie-highlight">Evidence-Backed Hiring Decisions</span></h2>
+            <p class="ie-subtitle">Transform raw job requirements into ranked, explainable candidate intelligence using our multi-agent AI system.</p>
           </div>
 
-          <div class="how-steps">
-            <div class="how-step reveal">
-              <div class="how-step-num">01</div>
-              <div class="how-step-content">
-                <h3 class="how-step-title">Paste Your Job Description</h3>
-                <p class="how-step-desc">Upload or paste any JD — HireMind extracts required skills, experience thresholds, role context, and seniority signals automatically using its AI parser.</p>
+          <!-- Timeline: Nav Pills + Visual Panel -->
+          <div class="ie-timeline" id="ie-timeline">
+
+            <!-- LEFT: Step Navigation Pills -->
+            <nav class="ie-steps-nav" id="ie-steps-nav" aria-label="Process steps">
+
+              <button class="ie-step-pill ie-active" data-step="0" id="ie-pill-0" aria-selected="true">
+                <div class="ie-step-pill-num">01</div>
+                <div class="ie-step-pill-text">
+                  <div class="ie-step-pill-label">Input Layer</div>
+                  <div class="ie-step-pill-title">JD Parsing &amp; Extraction</div>
+                </div>
+                <div class="ie-step-pill-progress"></div>
+              </button>
+
+              <button class="ie-step-pill" data-step="1" id="ie-pill-1" aria-selected="false">
+                <div class="ie-step-pill-num">02</div>
+                <div class="ie-step-pill-text">
+                  <div class="ie-step-pill-label">Data Ingestion</div>
+                  <div class="ie-step-pill-title">Candidate Profile Import</div>
+                </div>
+                <div class="ie-step-pill-progress"></div>
+              </button>
+
+              <button class="ie-step-pill" data-step="2" id="ie-pill-2" aria-selected="false">
+                <div class="ie-step-pill-num">03</div>
+                <div class="ie-step-pill-text">
+                  <div class="ie-step-pill-label">AI Multi-Agent</div>
+                  <div class="ie-step-pill-title">6-Dimension Scoring</div>
+                </div>
+                <div class="ie-step-pill-progress"></div>
+              </button>
+
+              <button class="ie-step-pill" data-step="3" id="ie-pill-3" aria-selected="false">
+                <div class="ie-step-pill-num">04</div>
+                <div class="ie-step-pill-text">
+                  <div class="ie-step-pill-label">Output</div>
+                  <div class="ie-step-pill-title">Ranked Intelligence Report</div>
+                </div>
+                <div class="ie-step-pill-progress"></div>
+              </button>
+
+              <button class="ie-step-pill" data-step="4" id="ie-pill-4" aria-selected="false">
+                <div class="ie-step-pill-num">05</div>
+                <div class="ie-step-pill-text">
+                  <div class="ie-step-pill-label">Recruiter Action</div>
+                  <div class="ie-step-pill-title">Confident Hiring Decision</div>
+                </div>
+                <div class="ie-step-pill-progress"></div>
+              </button>
+
+              <!-- Description area -->
+              <div class="ie-step-desc-box">
+                <p class="ie-step-desc-text" id="ie-step-desc">Upload or paste any JD — HireMind's AI parser extracts required skills, experience thresholds, role context, and seniority signals automatically.</p>
               </div>
+            </nav>
+
+            <!-- RIGHT: Visual Panel Cards -->
+            <div class="ie-visual-panel" id="ie-visual-panel">
+
+              <!-- Card 0: JD Scanner -->
+              <div class="ie-visual-card ie-card-active" id="ie-card-0" aria-hidden="false">
+                <div class="ie-card-header">
+                  <div class="ie-card-title">JD Intelligence Parser</div>
+                  <div class="ie-card-badge processing">
+                    <span class="ie-badge-dot"></span> Analyzing
+                  </div>
+                </div>
+                <div class="ie-jd-scanner">
+                  <div class="ie-jd-doc">
+                    <div class="ie-jd-line ie-scanned">
+                      <span class="ie-jd-keyword skill">React 18+</span>
+                      <span class="ie-jd-keyword skill">TypeScript</span>
+                      <span class="ie-jd-keyword seniority">Senior</span>
+                    </div>
+                    <div class="ie-jd-line ie-scanned">
+                      <span class="ie-jd-keyword skill">Node.js</span>
+                      <span class="ie-jd-keyword req">5+ years</span>
+                      <span class="ie-jd-keyword skill">PostgreSQL</span>
+                    </div>
+                    <div class="ie-jd-line">
+                      <span style="color:var(--lp-text-subtle);font-size:11px;">Team leadership, architecture ownership...</span>
+                    </div>
+                    <div class="ie-jd-line">
+                      <span style="color:var(--lp-text-subtle);font-size:11px;">Remote-friendly, equity compensation...</span>
+                    </div>
+                  </div>
+                  <div class="ie-scan-progress-row">
+                    <span class="ie-scan-label">Extraction complete</span>
+                    <span class="ie-scan-pct">100%</span>
+                  </div>
+                  <div class="ie-scan-bar"><div class="ie-scan-bar-fill"></div></div>
+                  <div class="ie-extracted-chips">
+                    <span class="ie-chip ie-chip-skill">⚙ React 18</span>
+                    <span class="ie-chip ie-chip-skill">⚙ TypeScript</span>
+                    <span class="ie-chip ie-chip-skill">⚙ Node.js</span>
+                    <span class="ie-chip ie-chip-skill">⚙ PostgreSQL</span>
+                    <span class="ie-chip ie-chip-level">👤 Senior</span>
+                    <span class="ie-chip ie-chip-exp">📅 5+ yrs</span>
+                    <span class="ie-chip ie-chip-context">🎯 Leadership</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 1: Candidate Stream -->
+              <div class="ie-visual-card" id="ie-card-1" aria-hidden="true">
+                <div class="ie-card-header">
+                  <div class="ie-card-title">Candidate Ingestion Stream</div>
+                  <div class="ie-card-badge live">
+                    <span class="ie-badge-dot"></span> Live
+                  </div>
+                </div>
+                <div class="ie-candidate-stream">
+                  <div class="ie-cand-row" style="animation-delay:0s">
+                    <div class="ie-cand-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7)">AR</div>
+                    <div>
+                      <div class="ie-cand-name">Arjun Rao</div>
+                      <div class="ie-cand-role">Sr. Frontend Engineer · Bangalore</div>
+                    </div>
+                    <div class="ie-cand-badges">
+                      <span class="ie-cand-badge ie-badge-github">GitHub</span>
+                      <span class="ie-cand-badge ie-badge-verified">✓</span>
+                    </div>
+                  </div>
+                  <div class="ie-cand-row" style="animation-delay:0.15s">
+                    <div class="ie-cand-avatar" style="background:linear-gradient(135deg,#06b6d4,#6366f1)">PM</div>
+                    <div>
+                      <div class="ie-cand-name">Priya Menon</div>
+                      <div class="ie-cand-role">Full-Stack Developer · Mumbai</div>
+                    </div>
+                    <div class="ie-cand-badges">
+                      <span class="ie-cand-badge ie-badge-linkedin">LI</span>
+                      <span class="ie-cand-badge ie-badge-verified">✓</span>
+                    </div>
+                  </div>
+                  <div class="ie-cand-row" style="animation-delay:0.3s">
+                    <div class="ie-cand-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">SK</div>
+                    <div>
+                      <div class="ie-cand-name">Siddharth K.</div>
+                      <div class="ie-cand-role">React Specialist · Pune</div>
+                    </div>
+                    <div class="ie-cand-badges">
+                      <span class="ie-cand-badge ie-badge-github">GitHub</span>
+                      <span class="ie-cand-badge ie-badge-linkedin">LI</span>
+                    </div>
+                  </div>
+                  <div class="ie-cand-row ie-cand-gem" style="animation-delay:0.45s">
+                    <div class="ie-cand-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">NJ</div>
+                    <div>
+                      <div class="ie-cand-name">Neha Joshi <span class="ie-gem-tag">💎 Hidden Gem</span></div>
+                      <div class="ie-cand-role">Software Engineer · Hyderabad</div>
+                    </div>
+                    <div class="ie-cand-badges">
+                      <span class="ie-cand-badge ie-badge-github">GitHub</span>
+                    </div>
+                  </div>
+                  <div class="ie-ingest-footer">
+                    <span class="ie-ingest-count">247 profiles ingested</span>
+                    <span class="ie-ingest-source">LinkedIn · CSV · ATS</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Multi-Agent Scoring -->
+              <div class="ie-visual-card" id="ie-card-2" aria-hidden="true">
+                <div class="ie-card-header">
+                  <div class="ie-card-title">6-Agent Scoring Engine</div>
+                  <div class="ie-card-badge running">
+                    <span class="ie-badge-dot"></span> Running
+                  </div>
+                </div>
+                <div class="ie-agents-grid">
+                  <div class="ie-agent-card ie-agent-done">
+                    <div class="ie-agent-name">Qualified</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:88%"></div></div>
+                    <div class="ie-agent-val">0.88</div>
+                    <div class="ie-agent-status">✓ Complete</div>
+                  </div>
+                  <div class="ie-agent-card ie-agent-done">
+                    <div class="ie-agent-name">Available</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:72%"></div></div>
+                    <div class="ie-agent-val">0.72</div>
+                    <div class="ie-agent-status">✓ Complete</div>
+                  </div>
+                  <div class="ie-agent-card ie-agent-running">
+                    <div class="ie-agent-name">Engageable</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:61%"></div></div>
+                    <div class="ie-agent-val">0.61</div>
+                    <div class="ie-agent-status">⟳ Analyzing…</div>
+                  </div>
+                  <div class="ie-agent-card ie-agent-done">
+                    <div class="ie-agent-name">Legitimate</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:95%"></div></div>
+                    <div class="ie-agent-val">0.95</div>
+                    <div class="ie-agent-status">✓ Complete</div>
+                  </div>
+                  <div class="ie-agent-card ie-agent-done">
+                    <div class="ie-agent-name">Growth</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:79%"></div></div>
+                    <div class="ie-agent-val">0.79</div>
+                    <div class="ie-agent-status">✓ Complete</div>
+                  </div>
+                  <div class="ie-agent-card ie-agent-done">
+                    <div class="ie-agent-name">Scrappiness</div>
+                    <div class="ie-agent-score-bar"><div class="ie-agent-score-fill" style="width:83%"></div></div>
+                    <div class="ie-agent-val">0.83</div>
+                    <div class="ie-agent-status">✓ Complete</div>
+                  </div>
+                </div>
+                <div class="ie-formula-row">
+                  <span class="ie-formula">P(Hire) = 0.88 × 0.72 × 0.61 × 0.95 × 0.79 × 0.83</span>
+                  <span class="ie-formula-result">= <strong>0.247</strong></span>
+                </div>
+              </div>
+
+              <!-- Card 3: Leaderboard -->
+              <div class="ie-visual-card" id="ie-card-3" aria-hidden="true">
+                <div class="ie-card-header">
+                  <div class="ie-card-title">Candidate Intelligence Report</div>
+                  <div class="ie-card-badge live">
+                    <span class="ie-badge-dot"></span> Ready
+                  </div>
+                </div>
+                <div class="ie-leaderboard">
+                  <div class="ie-lead-row ie-top-row">
+                    <div class="ie-rank-num">#1</div>
+                    <div class="ie-rank-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7)">AR</div>
+                    <div>
+                      <div class="ie-rank-name">Arjun Rao</div>
+                      <div class="ie-rank-role">Sr. Frontend Engineer</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="ie-hire-badge">87%</div>
+                      <div class="ie-hire-label">Hire Prob.</div>
+                    </div>
+                  </div>
+                  <div class="ie-lead-row">
+                    <div class="ie-rank-num">#2</div>
+                    <div class="ie-rank-avatar" style="background:linear-gradient(135deg,#06b6d4,#6366f1)">PM</div>
+                    <div>
+                      <div class="ie-rank-name">Priya Menon</div>
+                      <div class="ie-rank-role">Full-Stack Developer</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="ie-hire-badge">74%</div>
+                      <div class="ie-hire-label">Hire Prob.</div>
+                    </div>
+                  </div>
+                  <div class="ie-lead-row ie-gem-row">
+                    <div class="ie-rank-num">#3</div>
+                    <div class="ie-rank-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">NJ</div>
+                    <div>
+                      <div class="ie-rank-name">Neha Joshi <span class="ie-gem-tag">💎</span></div>
+                      <div class="ie-rank-role">Software Engineer — Hidden Gem</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="ie-hire-badge">68%</div>
+                      <div class="ie-hire-label">Hire Prob.</div>
+                    </div>
+                  </div>
+                  <div class="ie-lead-row">
+                    <div class="ie-rank-num">#4</div>
+                    <div class="ie-rank-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">SK</div>
+                    <div>
+                      <div class="ie-rank-name">Siddharth K.</div>
+                      <div class="ie-rank-role">React Specialist</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="ie-hire-badge">59%</div>
+                      <div class="ie-hire-label">Hire Prob.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 4: Decision Report -->
+              <div class="ie-visual-card" id="ie-card-4" aria-hidden="true">
+                <div class="ie-card-header">
+                  <div class="ie-card-title">AI Hiring Brief — Arjun Rao</div>
+                  <div class="ie-card-badge live">
+                    <span class="ie-badge-dot"></span> Explainable
+                  </div>
+                </div>
+                <div class="ie-report">
+                  <div class="ie-report-score-block">
+                    <div>
+                      <div class="ie-report-score-num">87<span style="font-size:24px;font-weight:400;">%</span></div>
+                      <div class="ie-report-score-label">Hire Probability Score</div>
+                      <div class="ie-report-score-status">✓ Strong Recommend · Shortlist Now</div>
+                    </div>
+                    <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px;min-width:120px">
+                      <div style="font-size:11px;color:var(--lp-text-muted);text-align:right">Strengths</div>
+                      <div style="font-size:11px;font-weight:600;color:#10b981;text-align:right">React ✓ TypeScript ✓</div>
+                      <div style="font-size:11px;color:var(--lp-text-muted);text-align:right">GitHub credibility: 9.2/10</div>
+                    </div>
+                  </div>
+                  <div class="ie-report-section">
+                    <div class="ie-report-section-title">AI Recruiter Brief</div>
+                    <div class="ie-report-item"><div class="ie-report-dot green"></div>5.5 years React experience, 3 open-source contributions with 200+ stars</div>
+                    <div class="ie-report-item"><div class="ie-report-dot green"></div>Available within 30 days based on LinkedIn activity signals</div>
+                    <div class="ie-report-item"><div class="ie-report-dot orange"></div>PostgreSQL exposure moderate — pair with SQL assessment</div>
+                    <div class="ie-report-item"><div class="ie-report-dot purple"></div>Growth trajectory +38% YoY — high learning velocity</div>
+                  </div>
+                  <div class="ie-report-cta-row">
+                    <button class="ie-report-btn-primary">📨 Reach Out Now</button>
+                    <button class="ie-report-btn-secondary">📋 View Full DNA Report</button>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /ie-visual-panel -->
+          </div><!-- /ie-timeline -->
+
+          <!-- Bottom Metrics Strip -->
+          <div class="ie-metrics-strip reveal">
+            <div class="ie-metric-item">
+              <div class="ie-metric-num">6<span class="ie-metric-suffix">×</span></div>
+              <div class="ie-metric-label">AI Scoring Dimensions</div>
             </div>
-            <div class="how-step reveal">
-              <div class="how-step-num">02</div>
-              <div class="how-step-content">
-                <h3 class="how-step-title">Candidate Profiles Ingested</h3>
-                <p class="how-step-desc">Import from LinkedIn, CSV, or ATS. Each candidate profile is enriched with behavioral signals, activity timestamps, and public credibility markers.</p>
-              </div>
+            <div class="ie-metric-item">
+              <div class="ie-metric-num">247<span class="ie-metric-suffix">+</span></div>
+              <div class="ie-metric-label">Profiles Ranked per Job</div>
             </div>
-            <div class="how-step reveal">
-              <div class="how-step-num">03</div>
-              <div class="how-step-content">
-                <h3 class="how-step-title">6-Dimension Scoring Engine Runs</h3>
-                <p class="how-step-desc">HireMind calculates P(Qualified) × P(Available) × P(Engageable) × P(Legitimate) × P(Growth) × P(Scrappiness) for every candidate. Multiplicative — no dimension can be gamed.</p>
-              </div>
+            <div class="ie-metric-item">
+              <div class="ie-metric-num">2.4<span class="ie-metric-suffix">s</span></div>
+              <div class="ie-metric-label">Avg. Score per Candidate</div>
             </div>
-            <div class="how-step reveal">
-              <div class="how-step-num">04</div>
-              <div class="how-step-content">
-                <h3 class="how-step-title">Ranked Intelligence Report Generated</h3>
-                <p class="how-step-desc">Every candidate receives a final Hire Probability score, a DNA radar chart, a natural language recruiter brief, and a Hidden Gem flag if applicable.</p>
-              </div>
+            <div class="ie-metric-item">
+              <div class="ie-metric-num">94<span class="ie-metric-suffix">%</span></div>
+              <div class="ie-metric-label">Shortlist Accuracy Rate</div>
             </div>
-            <div class="how-step reveal">
-              <div class="how-step-num">05</div>
-              <div class="how-step-content">
-                <h3 class="how-step-title">Recruiter Acts with Confidence</h3>
-                <p class="how-step-desc">Your shortlist is evidence-backed, explainable to hiring managers, and bias-aware. Reach out to the right candidates at the right time — with AI rationale behind every decision.</p>
-              </div>
+            <div class="ie-metric-item">
+              <div class="ie-metric-num">0<span class="ie-metric-suffix"> </span></div>
+              <div class="ie-metric-label">Black-Box Decisions</div>
             </div>
           </div>
-        </div>
+
+          <!-- Trust Strip -->
+          <div class="ie-trust-strip reveal">
+            <div class="ie-trust-pill"><div class="ie-trust-dot"></div>Fully Explainable AI</div>
+            <div class="ie-trust-pill"><div class="ie-trust-dot"></div>Bias-Aware Scoring</div>
+            <div class="ie-trust-pill"><div class="ie-trust-dot"></div>Evidence-Backed Only</div>
+            <div class="ie-trust-pill"><div class="ie-trust-dot"></div>Multiplicative — Not Additive</div>
+            <div class="ie-trust-pill"><div class="ie-trust-dot"></div>Hidden Gem Detection</div>
+          </div>
+
+        </div><!-- /ie-container -->
       </section>
 
       <!-- ── PRODUCT SHOWCASE ── -->
