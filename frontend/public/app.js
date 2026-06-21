@@ -544,16 +544,16 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="c-title">${c.title}</span>
         </div>
         <div class="score-col">
-          <span class="score-lbl">Match</span>
+          <span class="score-lbl">Hire Prob</span>
           <span class="score-val text-cyan">${c.overall_score}%</span>
         </div>
         <div class="score-col">
-          <span class="score-lbl">Potential</span>
-          <span class="score-val text-purple">${c.potential_score}</span>
+          <span class="score-lbl">Qualified</span>
+          <span class="score-val text-purple">${Math.round((c.hire_probability?.qualified || 0.8) * 100)}%</span>
         </div>
         <div class="score-col">
-          <span class="score-lbl">Intent</span>
-          <span class="score-val text-green">${c.intent_score}</span>
+          <span class="score-lbl">Available</span>
+          <span class="score-val text-green">${Math.round((c.hire_probability?.available || 0.8) * 100)}%</span>
         </div>
       `;
       container.appendChild(row);
@@ -590,14 +590,29 @@ document.addEventListener("DOMContentLoaded", () => {
       return `<span class="skill-tag ${typeClass}">${s.name} (${s.level})</span>`;
     }).join("");
 
-    const dna = cand.candidate_dna || {
-      technical_fit: cand.skill_match_score || 80,
-      experience_fit: cand.experience_score || 80,
-      career_trajectory: cand.potential_score || 80,
-      behavioral_intent: cand.intent_score || 80,
-      credibility: cand.alignment_score || 80,
-      hidden_gem_score: cand.categories.includes("hidden_gem") ? 90 : 50
+    // Fallback probability values if they don't exist on older/custom candidates
+    const hp = cand.hire_probability || {
+      qualified: (cand.candidate_dna?.technical_fit || cand.skill_match_score || 80) / 100,
+      available: (cand.candidate_dna?.experience_fit || cand.experience_score || 80) / 100,
+      engageable: (cand.candidate_dna?.career_trajectory || cand.potential_score || 85) / 100,
+      legitimate: cand.honeypot_risk ? 0.10 : (cand.candidate_dna?.behavioral_intent || cand.alignment_score || 90) / 100,
+      growth: (cand.candidate_dna?.credibility || 80) / 100,
+      scrappiness: (cand.candidate_dna?.hidden_gem_score || (cand.categories.includes("hidden_gem") ? 90 : 60)) / 100,
+      hire_score: cand.overall_score
     };
+
+    // Recalculate if mismatch
+    const calculatedScore = Math.round(hp.qualified * hp.available * hp.engageable * hp.legitimate * hp.growth * hp.scrappiness * 100);
+    const finalScore = hp.hire_score || calculatedScore;
+
+    // Detect "zero-killer" factor (factor < 0.15)
+    let zeroKillerMsg = "";
+    if (hp.qualified < 0.15) zeroKillerMsg = `Critical deficiency in Qualification (${Math.round(hp.qualified*100)}%)`;
+    else if (hp.available < 0.15) zeroKillerMsg = `Critical deficiency in Availability (${Math.round(hp.available*100)}%)`;
+    else if (hp.engageable < 0.15) zeroKillerMsg = `Critical deficiency in Engageability (${Math.round(hp.engageable*100)}%)`;
+    else if (hp.legitimate < 0.15) zeroKillerMsg = `Critical deficiency in Legitimacy / Credibility (${Math.round(hp.legitimate*100)}%)`;
+    else if (hp.growth < 0.15) zeroKillerMsg = `Critical deficiency in Growth Potential (${Math.round(hp.growth*100)}%)`;
+    else if (hp.scrappiness < 0.15) zeroKillerMsg = `Critical deficiency in Scrappiness (${Math.round(hp.scrappiness*100)}%)`;
 
     qvPanel.innerHTML = `
       <div class="qv-header">
@@ -611,7 +626,17 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; max-width: 50%; justify-content: flex-end;">${categoryBadges}</div>
       </div>
 
-      ${cand.honeypot_risk ? `
+      ${zeroKillerMsg ? `
+        <div class="p-factor-zero-alert">
+          <i data-lucide="alert-octagon"></i>
+          <div>
+            <strong>Zero-Killer Alert</strong>
+            <p style="margin: 0; margin-top: 2px;">${zeroKillerMsg}. Final Hire Probability is suppressed due to multiplicative constraints.</p>
+          </div>
+        </div>
+      ` : ''}
+
+      ${cand.honeypot_risk && !zeroKillerMsg ? `
         <div class="honeypot-alert-banner" style="background: rgba(249, 115, 22, 0.1); border: 1px solid var(--orange); padding: 12px; border-radius: 8px; margin: 16px 0; display: flex; gap: 10px; align-items: center;">
           <i data-lucide="alert-triangle" style="color: var(--orange); flex-shrink: 0;"></i>
           <div>
@@ -621,72 +646,76 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       ` : ''}
 
-      <div class="qv-scores-grid">
-        <div class="qv-score-box">
-          <span class="num text-cyan">${cand.overall_score}%</span>
-          <span class="label">Overall Score</span>
-        </div>
-        <div class="qv-score-box">
-          <span class="num text-purple">${cand.potential_score}</span>
-          <span class="label">Potential Score</span>
-        </div>
-        <div class="qv-score-box">
-          <span class="num text-green">${cand.intent_score}</span>
-          <span class="label">Intent Score</span>
-        </div>
+      <div class="hire-prob-score-badge">
+        <span class="score-title">Evidence-Driven Hire Probability</span>
+        <span class="score-value">${finalScore}%</span>
+        <span class="score-label">${finalScore >= 70 ? '✓ High Recruit Confidence' : finalScore >= 40 ? '⚡ Moderate Recruit Confidence' : '⚠️ Elevated Risk'}</span>
       </div>
 
       <div class="qv-insights-section">
-        <h4>Candidate DNA Index (6-Dimensions)</h4>
-        <div class="dna-dimension-bars" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Technical Fit (35%)</span><strong>${dna.technical_fit}%</strong>
+        <h4>Probability Dimensions (Multiplicative)</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Qualified) — Execution Capability</span>
+              <span class="p-label-val">${Math.round(hp.qualified * 100)}%</span>
             </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.technical_fit}%; height: 100%; background: var(--cyan); transition: width 0.6s ease;"></div>
-            </div>
-          </div>
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Experience Fit (20%)</span><strong>${dna.experience_fit}%</strong>
-            </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.experience_fit}%; height: 100%; background: var(--blue); transition: width 0.6s ease;"></div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.qualified * 100}%; background: var(--cyan);"></div>
             </div>
           </div>
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Career Trajectory (10%)</span><strong>${dna.career_trajectory}%</strong>
+
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Available) — Market Readiness</span>
+              <span class="p-label-val">${Math.round(hp.available * 100)}%</span>
             </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.career_trajectory}%; height: 100%; background: var(--purple); transition: width 0.6s ease;"></div>
-            </div>
-          </div>
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Behavioral Intent (15%)</span><strong>${dna.behavioral_intent}%</strong>
-            </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.behavioral_intent}%; height: 100%; background: var(--green); transition: width 0.6s ease;"></div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.available * 100}%; background: var(--blue);"></div>
             </div>
           </div>
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Credibility (10%)</span><strong>${dna.credibility}%</strong>
+
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Engageable) — Response Velocity</span>
+              <span class="p-label-val">${Math.round(hp.engageable * 100)}%</span>
             </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.credibility}%; height: 100%; background: var(--orange); transition: width 0.6s ease;"></div>
-            </div>
-          </div>
-          <div class="dna-bar-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>Hidden Gem (10%)</span><strong>${dna.hidden_gem_score}%</strong>
-            </div>
-            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
-              <div class="progress-bar-fill" style="width: ${dna.hidden_gem_score}%; height: 100%; background: #a855f7; transition: width 0.6s ease;"></div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.engageable * 100}%; background: var(--green);"></div>
             </div>
           </div>
+
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Legitimate) — Verification Integrity</span>
+              <span class="p-label-val" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'inherit'};">${Math.round(hp.legitimate * 100)}%</span>
+            </div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.legitimate * 100}%; background: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--purple)'};"></div>
+            </div>
+          </div>
+
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Growth) — Adaptive Potential</span>
+              <span class="p-label-val">${Math.round(hp.growth * 100)}%</span>
+            </div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.growth * 100}%; background: #ec4899;"></div>
+            </div>
+          </div>
+
+          <div class="p-factor-bar">
+            <div class="p-label-row">
+              <span class="p-label-name">P(Scrappiness) — Self-Direction</span>
+              <span class="p-label-val">${Math.round(hp.scrappiness * 100)}%</span>
+            </div>
+            <div class="p-progress-bg">
+              <div class="p-progress-fill" style="width: ${hp.scrappiness * 100}%; background: #eab308;"></div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1333,59 +1362,89 @@ document.addEventListener("DOMContentLoaded", () => {
       gapAnalysisDiv.innerHTML = `<div style="color: var(--text-muted); font-size:12px;">Candidate fully satisfies all technical framework layers. No skill gaps identified.</div>`;
     }
 
-    const dna = cand.candidate_dna || {
-      technical_fit: cand.skill_match_score || 80,
-      experience_fit: cand.experience_score || 80,
-      career_trajectory: cand.potential_score || 80,
-      behavioral_intent: cand.intent_score || 80,
-      credibility: cand.alignment_score || 80,
-      hidden_gem_score: cand.categories.includes("hidden_gem") ? 90 : 50
+    const hp = cand.hire_probability || {
+      qualified: (cand.candidate_dna?.technical_fit || cand.skill_match_score || 80) / 100,
+      available: (cand.candidate_dna?.experience_fit || cand.experience_score || 80) / 100,
+      engageable: (cand.candidate_dna?.career_trajectory || cand.potential_score || 85) / 100,
+      legitimate: cand.honeypot_risk ? 0.10 : (cand.candidate_dna?.behavioral_intent || cand.alignment_score || 90) / 100,
+      growth: (cand.candidate_dna?.credibility || 80) / 100,
+      scrappiness: (cand.candidate_dna?.hidden_gem_score || (cand.categories.includes("hidden_gem") ? 90 : 60)) / 100,
+      hire_score: cand.overall_score
     };
 
-    // Subscores progress bars
+    const calculatedScore = Math.round(hp.qualified * hp.available * hp.engageable * hp.legitimate * hp.growth * hp.scrappiness * 100);
+    const finalScore = hp.hire_score || calculatedScore;
+
+    // Subscores progress bars replaced with Multiplicative Formula Display and deep-dive cards
     const subscoresDiv = document.getElementById("rec-subscores");
     subscoresDiv.innerHTML = `
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Technical Fit (35%)</span>
-          <strong>${dna.technical_fit}%</strong>
+      <div class="prob-formula-display">
+        <div class="formula-title">Hire Probability Formula Execution</div>
+        <div class="formula-chain">
+          <span class="f-factor" title="P(Qualified)">P(Q): ${Math.round(hp.qualified*100)}%</span>
+          <span class="f-operator">×</span>
+          <span class="f-factor" title="P(Available)">P(A): ${Math.round(hp.available*100)}%</span>
+          <span class="f-operator">×</span>
+          <span class="f-factor" title="P(Engageable)">P(E): ${Math.round(hp.engageable*100)}%</span>
+          <span class="f-operator">×</span>
+          <span class="f-factor" title="P(Legitimate)" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--cyan)'};">P(L): ${Math.round(hp.legitimate*100)}%</span>
+          <span class="f-operator">×</span>
+          <span class="f-factor" title="P(Growth)">P(G): ${Math.round(hp.growth*100)}%</span>
+          <span class="f-operator">×</span>
+          <span class="f-factor" title="P(Scrappiness)">P(S): ${Math.round(hp.scrappiness*100)}%</span>
+          <span class="f-operator">=</span>
+          <span class="f-result" title="Final Score">${finalScore}%</span>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.technical_fit}%; background: var(--cyan);"></div></div>
       </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Experience Fit (20%)</span>
-          <strong>${dna.experience_fit}%</strong>
+
+      <div class="p-factor-grid">
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Qualified)</span>
+            <span class="factor-value">${Math.round(hp.qualified*100)}%</span>
+          </div>
+          <p class="factor-desc">Matches requirements of job description against candidate experience level and core competence tags.</p>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.experience_fit}%; background: var(--blue);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Career Trajectory (10%)</span>
-          <strong>${dna.career_trajectory}%</strong>
+
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Available)</span>
+            <span class="factor-value">${Math.round(hp.available*100)}%</span>
+          </div>
+          <p class="factor-desc">Tenure stability model and active search status signals from market data indicators.</p>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.career_trajectory}%; background: var(--purple);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Behavioral Intent (15%)</span>
-          <strong>${dna.behavioral_intent}%</strong>
+
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Engageable)</span>
+            <span class="factor-value">${Math.round(hp.engageable*100)}%</span>
+          </div>
+          <p class="factor-desc">Likelihood of recruiter engagement based on response history and profile interaction telemetry.</p>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.behavioral_intent}%; background: var(--green);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Credibility (10%)</span>
-          <strong>${dna.credibility}%</strong>
+
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Legitimate)</span>
+            <span class="factor-value" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--cyan)'};">${Math.round(hp.legitimate*100)}%</span>
+          </div>
+          <p class="factor-desc">${hp.legitimate < 0.15 ? 'CRITICAL: Suspicious anomalies detected in timeline / keywords.' : 'Authenticity verification and verification challenge results.'}</p>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.credibility}%; background: var(--orange);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row">
-          <span>Hidden Gem Score (10%)</span>
-          <strong>${dna.hidden_gem_score}%</strong>
+
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Growth)</span>
+            <span class="factor-value">${Math.round(hp.growth*100)}%</span>
+          </div>
+          <p class="factor-desc">Adaptive capacity, promotion velocity, and YoY skills expansion track record.</p>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.hidden_gem_score}%; background: #a855f7;"></div></div>
+
+        <div class="p-factor-card">
+          <div class="factor-header">
+            <span class="factor-name">P(Scrappiness)</span>
+            <span class="factor-value">${Math.round(hp.scrappiness*100)}%</span>
+          </div>
+          <p class="factor-desc">Self-starting traits, open source work, hackathon participation, and side projects.</p>
+        </div>
       </div>
     `;
 

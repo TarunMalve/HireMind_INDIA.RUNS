@@ -17,6 +17,15 @@ export interface RankResult {
   hidden_gem: boolean;
   honeypot_risk: boolean;
   reasoning: string;
+  hire_probability?: {
+    qualified: number;
+    available: number;
+    engageable: number;
+    legitimate: number;
+    growth: number;
+    scrappiness: number;
+    hire_score: number;
+  };
 }
 
 /**
@@ -310,20 +319,17 @@ export function rankCandidate(candidate: any, job: any): RankResult {
   
   const honeypot_risk = detectHoneypot(candidate, job);
 
-  // Compute weighted overall score
-  let match_score = Math.round(
-    (technicalFit * 0.35) +
-    (experienceFit * 0.20) +
-    (careerTrajectory * 0.10) +
-    (behavioralIntent * 0.15) +
-    (credibility * 0.10) +
-    (hiddenGemScore * 0.10)
-  );
+  // Compute 6 independent P-factors (0.0 to 1.0 scale)
+  const pQualified = Math.max(0.05, Math.min(1.0, (technicalFit * 0.7 + experienceFit * 0.3) / 100));
+  const pAvailable = Math.max(0.05, Math.min(1.0, (0.4 + (behavioralIntent / 100) * 0.4 + (experienceFit / 100) * 0.2)));
+  const pEngageable = Math.max(0.05, Math.min(1.0, (0.5 + (behavioralIntent / 100) * 0.3 + (candidate.readiness?.communication || 85) / 100 * 0.2)));
+  const pLegitimate = honeypot_risk ? 0.10 : Math.max(0.05, Math.min(1.0, credibility / 100));
+  const pGrowth = Math.max(0.05, Math.min(1.0, (careerTrajectory * 0.8 + hiddenGemScore * 0.2) / 100));
+  const pScrappiness = Math.max(0.05, Math.min(1.0, (hiddenGemScore * 0.6 + careerTrajectory * 0.4) / 100));
 
-  // Apply Honeypot penalty
-  if (honeypot_risk) {
-    match_score = Math.max(10, match_score - 50);
-  }
+  // Compute multiplicative final score
+  const hireProbabilityValue = pQualified * pAvailable * pEngageable * pLegitimate * pGrowth * pScrappiness;
+  const match_score = Math.round(hireProbabilityValue * 100);
 
   // Strengths compilation
   const strengths = [...techStrengths];
@@ -342,29 +348,38 @@ export function rankCandidate(candidate: any, job: any): RankResult {
   // Reasoning formulation
   let reasoning = '';
   if (honeypot_risk) {
-    reasoning = `Honeypot Alert: This candidate's profile matches the job requirements perfectly without any adjacent or outside skills, indicating automated keyword stuffing. Scoring was penalized accordingly.`;
+    reasoning = `Honeypot Alert: This candidate's profile matches the job requirements perfectly without any adjacent or outside skills, indicating automated keyword stuffing. Legitimate rating was dropped to 10% and final score penalized accordingly.`;
   } else if (isGem) {
     reasoning = `${candidate.name} is classified as a Hidden Gem. While lacking direct keywords like ${jobSkills.filter((s: string) => !candidateSkills.some((cs: string) => normalizeSkill(cs) === normalizeSkill(s))).slice(0,2).join(', ')}, they demonstrate excellent competence in adjacent technologies and high potential for quick onboarding.`;
   } else {
-    reasoning = `${candidate.name} shows a robust ${match_score}% match, with strong scores in Technical Fit (${technicalFit}%) and Experience Fit (${experienceFit}%). Trajectory and intent scores indicate high readiness for this role.`;
+    reasoning = `${candidate.name} shows a robust ${match_score}% hire probability score, with strong scores in Qualification (${Math.round(pQualified*100)}%) and Legitimate check (${Math.round(pLegitimate*100)}%). Trajectory and intent scores indicate high readiness for this role.`;
   }
 
   return {
     candidate_id: candidate.id,
     match_score,
-    rank_score: match_score, // default rank score is equivalent to match score
+    rank_score: match_score, 
     candidate_dna: {
-      technical_fit: technicalFit,
-      experience_fit: experienceFit,
-      career_trajectory: careerTrajectory,
-      behavioral_intent: behavioralIntent,
-      credibility: credibility,
-      hidden_gem_score: hiddenGemScore,
+      technical_fit: Math.round(pQualified * 100),
+      experience_fit: Math.round(pAvailable * 100),
+      career_trajectory: Math.round(pEngageable * 100),
+      behavioral_intent: Math.round(pLegitimate * 100),
+      credibility: Math.round(pGrowth * 100),
+      hidden_gem_score: Math.round(pScrappiness * 100),
     },
     strengths: strengths.slice(0, 3),
     risks: risks.slice(0, 3),
     hidden_gem: isGem,
     honeypot_risk,
     reasoning,
+    hire_probability: {
+      qualified: parseFloat(pQualified.toFixed(2)),
+      available: parseFloat(pAvailable.toFixed(2)),
+      engageable: parseFloat(pEngageable.toFixed(2)),
+      legitimate: parseFloat(pLegitimate.toFixed(2)),
+      growth: parseFloat(pGrowth.toFixed(2)),
+      scrappiness: parseFloat(pScrappiness.toFixed(2)),
+      hire_score: match_score
+    }
   };
 }

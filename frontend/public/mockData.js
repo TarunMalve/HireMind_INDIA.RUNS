@@ -158,7 +158,7 @@ const candidates = [
     title: "Senior UI Developer",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
     experience: 6,
-    overall_score: 93,
+    overall_score: 80,
     categories: ["hidden_gem", "fast_learner"],
     skill_match_score: 91,
     experience_score: 88,
@@ -216,6 +216,15 @@ const candidates = [
       credibility: 90,
       hidden_gem_score: 95
     },
+    hire_probability: {
+      qualified: 0.94,
+      available: 0.95,
+      engageable: 0.98,
+      legitimate: 1.00,
+      growth: 0.96,
+      scrappiness: 0.95,
+      hire_score: 80
+    },
     hidden_gem: true,
     honeypot_risk: false,
     reasoning: "Helena is a textbook Hidden Gem. While the role lists React & AWS, she is an expert in Vue.js and GCP, demonstrating identical architectural knowledge in single-page apps and serverless environments. Her high potential score (96) is backed by her rapid transition from designer to lead UI architect in just 4 years."
@@ -226,7 +235,7 @@ const candidates = [
     title: "Backend Engineer",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
     experience: 4,
-    overall_score: 89,
+    overall_score: 65,
     categories: ["hidden_gem", "high_intent"],
     skill_match_score: 85,
     experience_score: 80,
@@ -283,6 +292,15 @@ const candidates = [
       credibility: 95,
       hidden_gem_score: 90
     },
+    hire_probability: {
+      qualified: 0.88,
+      available: 0.92,
+      engageable: 0.95,
+      legitimate: 0.95,
+      growth: 0.92,
+      scrappiness: 0.96,
+      hire_score: 65
+    },
     hidden_gem: true,
     honeypot_risk: false,
     reasoning: "Marcus has built complex data pipelines and microservices using Python and Docker, proving he can handle distributed architectures. Although the job requires Go & Kubernetes, his underlying network, messaging (gRPC), and distributed system skills are directly adjacent."
@@ -293,7 +311,7 @@ const candidates = [
     title: "Machine Learning Engineer",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
     experience: 7,
-    overall_score: 95,
+    overall_score: 64,
     categories: ["high_intent", "future_leader"],
     skill_match_score: 97,
     experience_score: 94,
@@ -349,6 +367,15 @@ const candidates = [
       credibility: 100,
       hidden_gem_score: 45
     },
+    hire_probability: {
+      qualified: 0.98,
+      available: 0.90,
+      engageable: 0.92,
+      legitimate: 1.00,
+      growth: 0.93,
+      scrappiness: 0.85,
+      hire_score: 64
+    },
     hidden_gem: false,
     honeypot_risk: false,
     reasoning: "Kenji is an exceptional applicant who perfectly matches our AI Research role. He has published 3 papers on Transformer efficiency and maintains a widely used NLP toolkit. Trajectory and intent scores indicate high readiness for this role."
@@ -359,7 +386,7 @@ const candidates = [
     title: "React Developer",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
     experience: 3,
-    overall_score: 87,
+    overall_score: 61,
     categories: ["fast_learner", "high_intent"],
     skill_match_score: 88,
     experience_score: 75,
@@ -415,6 +442,15 @@ const candidates = [
       credibility: 88,
       hidden_gem_score: 52
     },
+    hire_probability: {
+      qualified: 0.82,
+      available: 0.95,
+      engageable: 0.96,
+      legitimate: 0.95,
+      growth: 0.94,
+      scrappiness: 0.92,
+      hire_score: 61
+    },
     hidden_gem: false,
     honeypot_risk: false,
     reasoning: "Aisha is a highly motivated mid-level developer. She possesses strong React, Next.js, and TypeScript skills. While she has a minor gap in cloud infrastructure (AWS), her intense open-source commitment and rapid promotion history make her an outstanding growth hire."
@@ -425,7 +461,7 @@ const candidates = [
     title: "Infrastructure Lead",
     avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80",
     experience: 8,
-    overall_score: 91,
+    overall_score: 48,
     categories: ["future_leader"],
     skill_match_score: 93,
     experience_score: 92,
@@ -481,6 +517,15 @@ const candidates = [
       credibility: 90,
       hidden_gem_score: 40
     },
+    hire_probability: {
+      qualified: 0.93,
+      available: 0.88,
+      engageable: 0.87,
+      legitimate: 0.95,
+      growth: 0.88,
+      scrappiness: 0.80,
+      hire_score: 48
+    },
     hidden_gem: false,
     honeypot_risk: false,
     reasoning: "Liam is an experienced Infrastructure Lead who perfectly satisfies our DevOps requirements. He has successfully designed multi-region cloud setups. Trajectory and intent scores indicate high readiness for this role."
@@ -491,7 +536,7 @@ const candidates = [
     title: "Senior Node/Svelte Developer",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
     experience: 5,
-    overall_score: 88,
+    overall_score: 54,
     categories: ["hidden_gem", "fast_learner"],
     skill_match_score: 84,
     experience_score: 85,
@@ -546,6 +591,15 @@ const candidates = [
       credibility: 87,
       hidden_gem_score: 88
     },
+    hire_probability: {
+      qualified: 0.85,
+      available: 0.90,
+      engageable: 0.90,
+      legitimate: 0.95,
+      growth: 0.93,
+      scrappiness: 0.88,
+      hire_score: 54
+    },
     hidden_gem: true,
     honeypot_risk: false,
     reasoning: "Elena is a strong Svelte and Node developer. While not an exact match for React, her reactive component architecture experience translates perfectly. This adjacent stack capability makes her a prime Hidden Gem candidate."
@@ -556,7 +610,7 @@ const candidates = [
     title: "Senior Frontend Architect",
     avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80",
     experience: 10,
-    overall_score: 35,
+    overall_score: 5,
     categories: ["honeypot_risk"],
     skill_match_score: 100,
     experience_score: 95,
@@ -609,6 +663,15 @@ const candidates = [
       behavioral_intent: 85,
       credibility: 30,
       hidden_gem_score: 30
+    },
+    hire_probability: {
+      qualified: 0.95,
+      available: 0.85,
+      engageable: 0.85,
+      legitimate: 0.10,
+      growth: 0.90,
+      scrappiness: 0.85,
+      hire_score: 5
     },
     hidden_gem: false,
     honeypot_risk: true,
