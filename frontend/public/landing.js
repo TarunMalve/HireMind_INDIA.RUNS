@@ -576,6 +576,33 @@
   }
 
   // ─────────────────────────────────────────────────────────────
+  // FEATURE CARD FLIPPING
+  // ─────────────────────────────────────────────────────────────
+  function initFeatureCardFlipping() {
+    const wrappers = document.querySelectorAll('.feature-card-wrapper');
+    wrappers.forEach(wrapper => {
+      const inner = wrapper.querySelector('.feature-card-inner');
+      const front = wrapper.querySelector('.feature-card-front');
+      const back = wrapper.querySelector('.feature-card-back');
+
+      if (!inner || !front || !back) return;
+
+      // Click on front flips to back
+      front.addEventListener('click', () => {
+        inner.classList.add('flipped');
+      });
+
+      // Click on back (excluding action button) flips back to front
+      back.addEventListener('click', (e) => {
+        if (e.target.closest('.feature-back-btn')) {
+          return;
+        }
+        inner.classList.remove('flipped');
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // LANDING PAGE SHOW / HIDE
   // ─────────────────────────────────────────────────────────────
   function showLanding() {
@@ -600,6 +627,7 @@
     initMarquee();
     initHeroPreview();
     initPricingToggle();
+    initFeatureCardFlipping();
     Toast.init();
     AuthModal.init();
     if (window.lucide) lucide.createIcons();

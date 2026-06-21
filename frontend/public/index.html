@@ -401,58 +401,226 @@
           </div>
 
           <div class="features-grid">
-            <div class="feature-card reveal">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(99,102,241,0.1));">
-                <i data-lucide="brain-circuit" style="width:22px;height:22px;color:#6366f1;"></i>
+            <!-- Card 1: Hire Probability Engine -->
+            <div class="feature-card-wrapper reveal">
+              <div class="feature-card-inner" id="feature-card-0">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(99,102,241,0.1));">
+                      <i data-lucide="brain-circuit" style="width:22px;height:22px;color:#6366f1;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Hire Probability Engine</h3>
+                    <p class="feature-card-desc">Multiplicative scoring across P(Qualified) × P(Available) × P(Engageable) × P(Legitimate) × P(Growth) × P(Scrappiness). If any dimension is zero, the score is zero.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag">Core AI</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon">
+                      <i data-lucide="brain-circuit" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">Scoring Diagnostics</h4>
+                    <p class="feature-back-desc">Interactive sandbox showing real-time impact of each agent's evaluation weight on the overall multiplicative outcome.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#dashboard" class="feature-back-btn" onclick="event.stopPropagation()">
+                      <span>Access Scoring Dashboard</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Hire Probability Engine</h3>
-              <p class="feature-card-desc">Multiplicative scoring across P(Qualified) × P(Available) × P(Engageable) × P(Legitimate) × P(Growth) × P(Scrappiness). If any dimension is zero, the score is zero.</p>
-              <span class="feature-tag">Core AI</span>
             </div>
 
-            <div class="feature-card reveal reveal-delay-1">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(6,182,212,0.1));">
-                <i data-lucide="gem" style="width:22px;height:22px;color:#06b6d4;"></i>
+            <!-- Card 2: Hidden Gem Detection -->
+            <div class="feature-card-wrapper reveal reveal-delay-1">
+              <div class="feature-card-inner" id="feature-card-1">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(6,182,212,0.1));">
+                      <i data-lucide="gem" style="width:22px;height:22px;color:#06b6d4;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Hidden Gem Detection</h3>
+                    <p class="feature-card-desc">Surfaces undervalued candidates with high growth trajectories, strong OSS contributions, or upward career momentum that traditional ATS systems miss entirely.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag" style="color:#06b6d4;border-color:rgba(6,182,212,0.3);">Discovery</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon" style="background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.2); color:#06b6d4;">
+                      <i data-lucide="gem" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">Discovery Engine</h4>
+                    <p class="feature-back-desc">Filter and view non-traditional high-potential talent sorted by their growth rate and core contribution metrics.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#hiddengems" class="feature-back-btn" style="background:linear-gradient(135deg,#06b6d4,#6366f1)" onclick="event.stopPropagation()">
+                      <span>Access Hidden Gems</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Hidden Gem Detection</h3>
-              <p class="feature-card-desc">Surfaces undervalued candidates with high growth trajectories, strong OSS contributions, or upward career momentum that traditional ATS systems miss entirely.</p>
-              <span class="feature-tag" style="color:#06b6d4;border-color:rgba(6,182,212,0.3);">Discovery</span>
             </div>
 
-            <div class="feature-card reveal reveal-delay-2">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));">
-                <i data-lucide="shield-check" style="width:22px;height:22px;color:#a855f7;"></i>
+            <!-- Card 3: Resume Legitimacy Scan -->
+            <div class="feature-card-wrapper reveal reveal-delay-2">
+              <div class="feature-card-inner" id="feature-card-2">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));">
+                      <i data-lucide="shield-check" style="width:22px;height:22px;color:#a855f7;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Resume Legitimacy Scan</h3>
+                    <p class="feature-card-desc">Detects credential inflation, implausible timeline jumps, and fake project claims. A honeypot candidate with P(Legitimate)=0.1 automatically collapses to near-zero.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag" style="color:#a855f7;border-color:rgba(168,85,247,0.3);">Anti-Fraud</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon" style="background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.2); color:#a855f7;">
+                      <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">Security & Integrity</h4>
+                    <p class="feature-back-desc">Audit candidate profile integrity, flag timeline anomalies, and explore verification logs.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#candidates" class="feature-back-btn" style="background:linear-gradient(135deg,#a855f7,#ec4899)" onclick="event.stopPropagation()">
+                      <span>Access Candidate Audit</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Resume Legitimacy Scan</h3>
-              <p class="feature-card-desc">Detects credential inflation, implausible timeline jumps, and fake project claims. A honeypot candidate with P(Legitimate)=0.1 automatically collapses to near-zero.</p>
-              <span class="feature-tag" style="color:#a855f7;border-color:rgba(168,85,247,0.3);">Anti-Fraud</span>
             </div>
 
-            <div class="feature-card reveal">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.1));">
-                <i data-lucide="trending-up" style="width:22px;height:22px;color:#10b981;"></i>
+            <!-- Card 4: Career Trajectory Mapping -->
+            <div class="feature-card-wrapper reveal">
+              <div class="feature-card-inner" id="feature-card-3">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.1));">
+                      <i data-lucide="trending-up" style="width:22px;height:22px;color:#10b981;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Career Trajectory Mapping</h3>
+                    <p class="feature-card-desc">Projects a candidate's growth arc 2 years forward using role progression, skill velocity, and market demand signals. Future leaders identified before they peak.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag" style="color:#10b981;border-color:rgba(16,185,129,0.3);">Forecasting</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2); color:#10b981;">
+                      <i data-lucide="trending-up" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">Growth Projection</h4>
+                    <p class="feature-back-desc">Track and filter high-trajectory professionals projected to become team leaders or key contributors.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#pipeline" class="feature-back-btn" style="background:linear-gradient(135deg,#10b981,#06b6d4)" onclick="event.stopPropagation()">
+                      <span>Access Talent Forecasting</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Career Trajectory Mapping</h3>
-              <p class="feature-card-desc">Projects a candidate's growth arc 2 years forward using role progression, skill velocity, and market demand signals. Future leaders identified before they peak.</p>
-              <span class="feature-tag" style="color:#10b981;border-color:rgba(16,185,129,0.3);">Forecasting</span>
             </div>
 
-            <div class="feature-card reveal reveal-delay-1">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(251,146,60,0.2),rgba(251,146,60,0.1));">
-                <i data-lucide="activity" style="width:22px;height:22px;color:#fb923c;"></i>
+            <!-- Card 5: Behavioral Signal Analysis -->
+            <div class="feature-card-wrapper reveal reveal-delay-1">
+              <div class="feature-card-inner" id="feature-card-4">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(251,146,60,0.2),rgba(251,146,60,0.1));">
+                      <i data-lucide="activity" style="width:22px;height:22px;color:#fb923c;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Behavioral Signal Analysis</h3>
+                    <p class="feature-card-desc">GitHub commit frequency, LinkedIn activity velocity, portfolio freshness, open-source contributions — all converted into engagement probability scores.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag" style="color:#fb923c;border-color:rgba(251,146,60,0.3);">Signals</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.2); color:#fb923c;">
+                      <i data-lucide="activity" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">Signal Marketplace</h4>
+                    <p class="feature-back-desc">Real-time developer activities, commit metrics, and activity levels filtered for relevant technologies.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#marketplace" class="feature-back-btn" style="background:linear-gradient(135deg,#fb923c,#f43f5e)" onclick="event.stopPropagation()">
+                      <span>Access Talent Signals</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Behavioral Signal Analysis</h3>
-              <p class="feature-card-desc">GitHub commit frequency, LinkedIn activity velocity, portfolio freshness, open-source contributions — all converted into engagement probability scores.</p>
-              <span class="feature-tag" style="color:#fb923c;border-color:rgba(251,146,60,0.3);">Signals</span>
             </div>
 
-            <div class="feature-card reveal reveal-delay-2">
-              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(244,63,94,0.2),rgba(244,63,94,0.1));">
-                <i data-lucide="dna" style="width:22px;height:22px;color:#f43f5e;"></i>
+            <!-- Card 6: Candidate DNA Analysis -->
+            <div class="feature-card-wrapper reveal reveal-delay-2">
+              <div class="feature-card-inner" id="feature-card-5">
+                <!-- Front Side -->
+                <div class="feature-card-front">
+                  <div>
+                    <div class="feature-icon" style="background:linear-gradient(135deg,rgba(244,63,94,0.2),rgba(244,63,94,0.1));">
+                      <i data-lucide="dna" style="width:22px;height:22px;color:#f43f5e;"></i>
+                    </div>
+                    <h3 class="feature-card-title">Candidate DNA Analysis</h3>
+                    <p class="feature-card-desc">Radar visualization of all 6 hire probability dimensions with strengths, risks, and a recruiter-grade natural language explanation of every score decision.</p>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:16px;">
+                    <span class="feature-tag" style="color:#f43f5e;border-color:rgba(244,63,94,0.3);">Explainable AI</span>
+                    <span class="feature-flip-hint">Click to flip <i data-lucide="arrow-right" style="width:12px; height:12px; margin-left:2px;"></i></span>
+                  </div>
+                </div>
+                <!-- Back Side -->
+                <div class="feature-card-back">
+                  <div>
+                    <div class="feature-back-icon" style="background:rgba(244,63,94,0.1); border-color:rgba(244,63,94,0.2); color:#f43f5e;">
+                      <i data-lucide="dna" style="width:20px;height:20px;"></i>
+                    </div>
+                    <h4 class="feature-back-title">DNA Profiler</h4>
+                    <p class="feature-back-desc">Compare developer skills with custom criteria and read explainable summaries explaining the scoring rationale.</p>
+                  </div>
+                  <div class="feature-back-action">
+                    <a href="#dna" class="feature-back-btn" style="background:linear-gradient(135deg,#f43f5e,#a855f7)" onclick="event.stopPropagation()">
+                      <span>Access DNA Profiler</span>
+                      <i data-lucide="external-link" style="width:14px; height:14px;"></i>
+                    </a>
+                    <div class="feature-flip-back">← Flip Back</div>
+                  </div>
+                </div>
               </div>
-              <h3 class="feature-card-title">Candidate DNA Analysis</h3>
-              <p class="feature-card-desc">Radar visualization of all 6 hire probability dimensions with strengths, risks, and a recruiter-grade natural language explanation of every score decision.</p>
-              <span class="feature-tag" style="color:#f43f5e;border-color:rgba(244,63,94,0.3);">Explainable AI</span>
             </div>
           </div>
         </div>
