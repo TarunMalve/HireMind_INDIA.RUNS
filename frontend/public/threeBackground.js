@@ -52,8 +52,7 @@
     color: 0x06b6d4,
     size: 3,
     transparent: true,
-    opacity: 0.8,
-    blending: THREE.AdditiveBlending
+    opacity: 0.8
   });
 
   // Points system
@@ -64,8 +63,7 @@
   const lineMaterial = new THREE.LineBasicMaterial({
     color: 0xa855f7,
     transparent: true,
-    opacity: 0.12,
-    blending: THREE.AdditiveBlending
+    opacity: 0.12
   });
 
   let connectionMesh;

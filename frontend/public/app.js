@@ -94,10 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboardLayout.classList.add("layout-hidden");
       landingView.classList.add("active");
       landingView.classList.remove("hidden");
+      document.body.classList.add("landing-active");
     } else {
       landingView.classList.add("hidden");
       landingView.classList.remove("active");
       dashboardLayout.classList.remove("layout-hidden");
+      document.body.classList.remove("landing-active");
 
       // Update sidebar nav highlighting
       document.querySelectorAll(".nav-item").forEach(item => {
@@ -392,14 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isGem = c.categories.includes("hidden_gem");
         const badge = isGem ? `<span class="badge badge-purple" style="font-size:9px;">GEM</span>` : `<span class="badge badge-cyan" style="font-size:9px;">TOP</span>`;
         const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.alignItems = "center";
-        div.style.justifyContent = "space-between";
-        div.style.padding = "8px";
-        div.style.background = "rgba(255,255,255,0.01)";
-        div.style.borderRadius = "8px";
-        div.style.border = "1px solid rgba(255,255,255,0.03)";
-        div.style.cursor = "pointer";
+        div.className = "dashboard-list-item";
         div.onclick = () => {
           currentRecCandidateId = c.id;
           window.location.hash = "#recommendation";
@@ -427,14 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const leadersList = [...candidates].sort((a, b) => b.potential_score - a.potential_score).slice(0, 3);
       leadersList.forEach(c => {
         const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.alignItems = "center";
-        div.style.justifyContent = "space-between";
-        div.style.padding = "8px";
-        div.style.background = "rgba(255,255,255,0.01)";
-        div.style.borderRadius = "8px";
-        div.style.border = "1px solid rgba(255,255,255,0.03)";
-        div.style.cursor = "pointer";
+        div.className = "dashboard-list-item";
         div.onclick = () => {
           currentCandidateDnaId = c.id;
           window.location.hash = "#dna";
@@ -466,13 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ? `<span class="opp-badge interview" style="padding:2px 6px; font-size:9px;"><i data-lucide="shield-check" class="icon-tiny"></i> Verified (${c.authenticity_score}%)</span>` 
           : `<span class="opp-badge nurture" style="padding:2px 6px; font-size:9px;"><i data-lucide="clock" class="icon-tiny"></i> Pending</span>`;
         const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.alignItems = "center";
-        div.style.justifyContent = "space-between";
-        div.style.padding = "8px";
-        div.style.background = "rgba(255,255,255,0.01)";
-        div.style.borderRadius = "8px";
-        div.style.border = "1px solid rgba(255,255,255,0.03)";
+        div.className = "dashboard-list-item";
         div.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
             <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
@@ -757,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <h4 style="margin:0;">Recruiter Reasoning Analysis</h4>
           <i data-lucide="chevron-down" class="chevron-icon icon-tiny text-muted" style="transition: transform 0.2s;"></i>
         </div>
-        <div class="qv-insight-text hidden" style="margin-top: 8px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid var(--purple); font-size: 12px; line-height: 1.4; color: var(--text-main);">
+        <div class="qv-insight-text hidden reasoning-text-box">
           ${cand.reasoning || cand.why_selected}
         </div>
       </div>
@@ -772,7 +754,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="skills-wrap">${skillsHtml}</div>
       </div>
 
-      <div class="qv-insights-section" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px;">
+      <div class="qv-insights-section qv-footer-section">
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
           <a href="#dna" class="btn btn-secondary btn-small" id="qv-dna-link">View DNA Radar</a>
           <a href="#recommendation" class="btn btn-primary btn-small" id="qv-rec-link">Explain Match Decision</a>
@@ -1067,6 +1049,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dnaChartInstance) {
       dnaChartInstance.destroy();
     }
+    const isLight = document.body.getAttribute('data-theme') === 'light';
+    const chartTextColor = isLight ? "#0f172a" : "#f3f4f6";
+    const chartTextMutedColor = isLight ? "#475569" : "#9ca3af";
+    const chartGridColor = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
 
     dnaChartInstance = new Chart(canvas, {
       type: "radar",
@@ -1104,14 +1090,14 @@ document.addEventListener("DOMContentLoaded", () => {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: "#f3f4f6" }
+            labels: { color: chartTextColor }
           }
         },
         scales: {
           r: {
-            angleLines: { color: "rgba(255,255,255,0.08)" },
-            grid: { color: "rgba(255,255,255,0.08)" },
-            pointLabels: { color: "#9ca3af", font: { size: 10 } },
+            angleLines: { color: chartGridColor },
+            grid: { color: chartGridColor },
+            pointLabels: { color: chartTextMutedColor, font: { size: 10 } },
             ticks: { display: false },
             suggestedMin: 50,
             suggestedMax: 100
@@ -1123,6 +1109,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- VIEW 8: AI INSIGHTS ---
   function loadInsightsView() {
+    const isLight = document.body.getAttribute('data-theme') === 'light';
+    const chartTextColor = isLight ? "#0f172a" : "#f3f4f6";
+    const chartTextMutedColor = isLight ? "#475569" : "#9ca3af";
+    const chartGridColor = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+
     // 1. Match distribution chart
     const distributionCanvas = document.getElementById("matchDistributionChart");
     if (distributionChartInstance) distributionChartInstance.destroy();
@@ -1146,8 +1137,8 @@ document.addEventListener("DOMContentLoaded", () => {
           legend: { display: false }
         },
         scales: {
-          y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#9ca3af" } },
-          x: { grid: { display: false }, ticks: { color: "#9ca3af" } }
+          y: { grid: { color: chartGridColor }, ticks: { color: chartTextMutedColor } },
+          x: { grid: { display: false }, ticks: { color: chartTextMutedColor } }
         }
       }
     });
@@ -1182,11 +1173,11 @@ document.addEventListener("DOMContentLoaded", () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: "#9ca3af" } }
+          legend: { labels: { color: chartTextMutedColor } }
         },
         scales: {
-          y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#9ca3af" } },
-          x: { grid: { display: false }, ticks: { color: "#9ca3af" } }
+          y: { grid: { color: chartGridColor }, ticks: { color: chartTextMutedColor } },
+          x: { grid: { display: false }, ticks: { color: chartTextMutedColor } }
         }
       }
     });
@@ -1626,11 +1617,11 @@ document.addEventListener("DOMContentLoaded", () => {
             Your skill assertions in <strong>${cand.authenticity_challenge.topic}</strong> have been validated through our dynamic challenger.
           </p>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-top:8px;">
-            <div style="background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+            <div class="quiz-stat-card">
               <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Authenticity Score</span>
               <strong style="font-size:16px; color:var(--cyan);">${cand.authenticity_score}%</strong>
             </div>
-            <div style="background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+            <div class="quiz-stat-card">
               <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Knowledge Confidence</span>
               <strong style="font-size:16px; color:var(--purple);">${cand.knowledge_confidence_score}%</strong>
             </div>

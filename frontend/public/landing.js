@@ -22,9 +22,9 @@
       document.documentElement.setAttribute('data-theme', theme);
       document.body.setAttribute('data-theme', theme);
       localStorage.setItem(this.STORAGE_KEY, theme);
-      const icon = document.getElementById('theme-icon');
-      if (icon) {
-        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+      const btn = document.querySelector('.theme-toggle-btn');
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="${theme === 'dark' ? 'sun' : 'moon'}" id="theme-icon" style="width:16px;height:16px;"></i>`;
         if (window.lucide) lucide.createIcons();
       }
     },
@@ -514,6 +514,7 @@
     initPricingToggle();
     Toast.init();
     AuthModal.init();
+    if (window.lucide) lucide.createIcons();
   }
 
   if (document.readyState === 'loading') {

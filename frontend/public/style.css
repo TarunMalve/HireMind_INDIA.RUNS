@@ -29,6 +29,208 @@
   --blur-radius: 20px;
 }
 
+/* Light Theme Variables for Dashboard */
+[data-theme='light'] {
+  --bg-dark: #f8fafc;
+  --bg-sidebar: rgba(255, 255, 255, 0.7);
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dark: #94a3b8;
+  
+  --cyan: #0891b2;
+  --cyan-glow: rgba(8, 145, 178, 0.15);
+  --purple: #9333ea;
+  --purple-glow: rgba(147, 51, 234, 0.15);
+  --blue: #2563eb;
+  --blue-glow: rgba(37, 99, 235, 0.15);
+  --green: #059669;
+  --green-glow: rgba(5, 150, 105, 0.15);
+  --orange: #ea580c;
+  --orange-glow: rgba(234, 88, 12, 0.15);
+  
+  --shadow-main: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Light Theme UI overrides for Glassmorphism readability */
+[data-theme='light'] .glass-element {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .glass-card {
+  background: var(--bg-card) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .sidebar {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .content-header {
+  background: rgba(248, 250, 252, 0.75) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .sidebar-nav .nav-item:hover,
+[data-theme='light'] .sidebar-nav .nav-item.active {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme='light'] .search-bar input,
+[data-theme='light'] .glass-input {
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: var(--text-main) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .search-bar input:focus,
+[data-theme='light'] .glass-input:focus {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--cyan) !important;
+}
+
+[data-theme='light'] .table-header {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .candidate-card-row,
+[data-theme='light'] .job-row,
+[data-theme='light'] .platform-stats-grid .stat-box {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme='light'] .candidate-card-row:hover,
+[data-theme='light'] .job-row:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme='light'] .candidate-card-row.selected {
+  background: rgba(8, 145, 178, 0.08) !important;
+  border-color: var(--cyan) !important;
+}
+
+.dashboard-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-list-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+[data-theme='light'] .dashboard-list-item {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme='light'] .dashboard-list-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.reasoning-text-box {
+  margin-top: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border-left: 3px solid var(--purple);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+[data-theme='light'] .reasoning-text-box {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-left: 3px solid var(--purple) !important;
+}
+
+.qv-footer-section {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+}
+
+.quiz-stat-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+[data-theme='light'] .quiz-stat-card {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme='light'] .ai-chat-assistant-drawer {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme='light'] .chat-drawer-header {
+  background: #f1f5f9 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='light'] .chat-drawer-header h3,
+[data-theme='light'] .chat-drawer-header button {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .chat-msg.bot {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .chat-msg.user {
+  background: var(--cyan) !important;
+  color: #ffffff !important;
+}
+
+[data-theme='light'] .chat-suggested-chips .chip {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme='light'] .chat-suggested-chips .chip:hover {
+  background: var(--cyan-glow) !important;
+  color: var(--cyan) !important;
+  border-color: var(--cyan) !important;
+}
+
+[data-theme='light'] .portal-switch-wrapper {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme='light'] .portal-switch-btn.active {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+[data-theme='light'] .opp-card-item {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
 /* 2. Base Styling & Layout */
 * {
   box-sizing: border-box;

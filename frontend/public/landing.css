@@ -194,6 +194,14 @@ body.landing-active {
   max-width: 100%;
 }
 
+.landing-page .lucide,
+.landing-page svg.lucide {
+  display: inline-block !important;
+  vertical-align: middle;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
 .landing-page ul,
 .landing-page ol {
   list-style: none;
