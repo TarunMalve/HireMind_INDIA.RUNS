@@ -207,7 +207,18 @@ const candidates = [
     active_opportunities: [
       { role: "Senior Frontend Architect", match: 93, status: "Under Review", job_id: "job-1" },
       { role: "Full Stack Engineer", match: 86, status: "Nurturing Pipeline", job_id: "none" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 91,
+      experience_fit: 88,
+      career_trajectory: 96,
+      behavioral_intent: 92,
+      credibility: 90,
+      hidden_gem_score: 95
+    },
+    hidden_gem: true,
+    honeypot_risk: false,
+    reasoning: "Helena is a textbook Hidden Gem. While the role lists React & AWS, she is an expert in Vue.js and GCP, demonstrating identical architectural knowledge in single-page apps and serverless environments. Her high potential score (96) is backed by her rapid transition from designer to lead UI architect in just 4 years."
   },
   {
     id: "cand-2",
@@ -263,7 +274,18 @@ const candidates = [
     },
     active_opportunities: [
       { role: "Distributed Systems Engineer", match: 89, status: "Pre-Screened", job_id: "job-2" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 85,
+      experience_fit: 80,
+      career_trajectory: 92,
+      behavioral_intent: 95,
+      credibility: 95,
+      hidden_gem_score: 90
+    },
+    hidden_gem: true,
+    honeypot_risk: false,
+    reasoning: "Marcus has built complex data pipelines and microservices using Python and Docker, proving he can handle distributed architectures. Although the job requires Go & Kubernetes, his underlying network, messaging (gRPC), and distributed system skills are directly adjacent."
   },
   {
     id: "cand-3",
@@ -318,7 +340,18 @@ const candidates = [
     },
     active_opportunities: [
       { role: "AI Research Scientist", match: 95, status: "Interview Scheduled", job_id: "job-3" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 97,
+      experience_fit: 94,
+      career_trajectory: 93,
+      behavioral_intent: 98,
+      credibility: 100,
+      hidden_gem_score: 45
+    },
+    hidden_gem: false,
+    honeypot_risk: false,
+    reasoning: "Kenji is an exceptional applicant who perfectly matches our AI Research role. He has published 3 papers on Transformer efficiency and maintains a widely used NLP toolkit. Trajectory and intent scores indicate high readiness for this role."
   },
   {
     id: "cand-4",
@@ -373,7 +406,18 @@ const candidates = [
     },
     active_opportunities: [
       { role: "Senior Frontend Architect", match: 87, status: "Under Review", job_id: "job-1" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 88,
+      experience_fit: 75,
+      career_trajectory: 94,
+      behavioral_intent: 96,
+      credibility: 88,
+      hidden_gem_score: 52
+    },
+    hidden_gem: false,
+    honeypot_risk: false,
+    reasoning: "Aisha is a highly motivated mid-level developer. She possesses strong React, Next.js, and TypeScript skills. While she has a minor gap in cloud infrastructure (AWS), her intense open-source commitment and rapid promotion history make her an outstanding growth hire."
   },
   {
     id: "cand-5",
@@ -428,7 +472,18 @@ const candidates = [
     },
     active_opportunities: [
       { role: "Lead DevOps Specialist", match: 91, status: "Under Review", job_id: "job-4" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 93,
+      experience_fit: 92,
+      career_trajectory: 88,
+      behavioral_intent: 87,
+      credibility: 90,
+      hidden_gem_score: 40
+    },
+    hidden_gem: false,
+    honeypot_risk: false,
+    reasoning: "Liam is an experienced Infrastructure Lead who perfectly satisfies our DevOps requirements. He has successfully designed multi-region cloud setups. Trajectory and intent scores indicate high readiness for this role."
   },
   {
     id: "cand-6",
@@ -482,7 +537,82 @@ const candidates = [
     },
     active_opportunities: [
       { role: "Full Stack Team Lead", match: 88, status: "Stored in Talent Pool", job_id: "none" }
-    ]
+    ],
+    candidate_dna: {
+      technical_fit: 84,
+      experience_fit: 85,
+      career_trajectory: 93,
+      behavioral_intent: 90,
+      credibility: 87,
+      hidden_gem_score: 88
+    },
+    hidden_gem: true,
+    honeypot_risk: false,
+    reasoning: "Elena is a strong Svelte and Node developer. While not an exact match for React, her reactive component architecture experience translates perfectly. This adjacent stack capability makes her a prime Hidden Gem candidate."
+  },
+  {
+    id: "cand-7",
+    name: "Vikram Sharma",
+    title: "Senior Frontend Architect",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80",
+    experience: 10,
+    overall_score: 35,
+    categories: ["honeypot_risk"],
+    skill_match_score: 100,
+    experience_score: 95,
+    potential_score: 90,
+    intent_score: 85,
+    alignment_score: 30,
+    skills: [
+      { name: "React", level: 100, matchType: "exact" },
+      { name: "TypeScript", level: 100, matchType: "exact" },
+      { name: "TailwindCSS", level: 100, matchType: "exact" },
+      { name: "AWS Cloud", level: 100, matchType: "exact" },
+      { name: "Next.js", level: 100, matchType: "exact" }
+    ],
+    why_selected: "Vikram's profile matches the job requirements perfectly word-for-word, which triggered our Honeypot Detection. His summary matches our job description verbatim, indicating automated profile generation.",
+    strengths: [
+      "Claimed 100% mastery in React, TypeScript, TailwindCSS, AWS, and Next.js"
+    ],
+    risks: [
+      "CRITICAL: High probability of resume stuffing / Honeypot profile",
+      "Verbatim job description overlap detected in profile summary",
+      "Suspicious 100% score alignment across all requirement fields"
+    ],
+    predicted_role_2yr: "Unknown",
+    prediction_confidence: "10%",
+    prediction_rationale: "Confidence is extremely low due to profile authenticity warning flags.",
+    readiness: { technical: 10, communication: 10, domain: 10, culture: 10 },
+    target_job_id: "job-1",
+    authenticity_score: 20,
+    knowledge_confidence_score: 10,
+    authenticity_status: "failed",
+    authenticity_challenge: {
+      topic: "React",
+      questions_answered: 3,
+      score: 20
+    },
+    learning_roadmap: {
+      missing_skills: ["Ethical Profile Representation"],
+      certifications: [],
+      timeline: [
+        { term: "Month 1-3", goal: "Complete verification challenges and re-submit genuine work history", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Senior Frontend Architect", match: 35, status: "Flagged - Under Review", job_id: "job-1" }
+    ],
+    candidate_dna: {
+      technical_fit: 100,
+      experience_fit: 95,
+      career_trajectory: 90,
+      behavioral_intent: 85,
+      credibility: 30,
+      hidden_gem_score: 30
+    },
+    hidden_gem: false,
+    honeypot_risk: true,
+    reasoning: "Honeypot Alert: This candidate's profile matches the job requirements perfectly without any adjacent or outside skills, indicating automated keyword stuffing. Scoring was penalized accordingly."
   }
 ];
 

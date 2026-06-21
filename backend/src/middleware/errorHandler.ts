@@ -81,8 +81,8 @@ export function globalErrorHandler(
     success: false,
     error: {
       message,
-      ...(details && { details }),
-      ...(isDev && { stack: err.stack }),
+      ...(details ? { details } : {}),
+      ...(isDev ? { stack: err.stack } : {}),
     },
   });
 }

@@ -571,9 +571,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const qvPanel = document.getElementById("candidate-quickview");
     qvPanel.classList.remove("hidden");
 
-    const categoryBadges = cand.categories.map(cat => {
+    let badgeHtml = "";
+    if (cand.honeypot_risk) {
+      badgeHtml += `<span class="badge" style="background: var(--orange); margin-right: 4px;">⚠️ HONEYPOT RISK</span>`;
+    }
+    if (cand.hidden_gem) {
+      badgeHtml += `<span class="badge badge-purple" style="margin-right: 4px;">💎 HIDDEN GEM</span>`;
+    }
+
+    const categoryBadges = badgeHtml + cand.categories.map(cat => {
       const name = cat.replace("_", " ").toUpperCase();
-      const color = cat === "hidden_gem" ? "badge-purple" : "badge-cyan";
+      const color = cat === "hidden_gem" ? "badge-purple" : cat === "honeypot_risk" ? "badge-orange" : "badge-cyan";
       return `<span class="badge ${color}">${name}</span>`;
     }).join(" ");
 
@@ -581,6 +589,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const typeClass = s.matchType === "exact" ? "match" : s.matchType === "adjacent" ? "adjacent" : "";
       return `<span class="skill-tag ${typeClass}">${s.name} (${s.level})</span>`;
     }).join("");
+
+    const dna = cand.candidate_dna || {
+      technical_fit: cand.skill_match_score || 80,
+      experience_fit: cand.experience_score || 80,
+      career_trajectory: cand.potential_score || 80,
+      behavioral_intent: cand.intent_score || 80,
+      credibility: cand.alignment_score || 80,
+      hidden_gem_score: cand.categories.includes("hidden_gem") ? 90 : 50
+    };
 
     qvPanel.innerHTML = `
       <div class="qv-header">
@@ -591,8 +608,18 @@ document.addEventListener("DOMContentLoaded", () => {
             <p>${cand.title} • ${cand.experience} yrs exp</p>
           </div>
         </div>
-        <div style="display: flex; gap: 6px;">${categoryBadges}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; max-width: 50%; justify-content: flex-end;">${categoryBadges}</div>
       </div>
+
+      ${cand.honeypot_risk ? `
+        <div class="honeypot-alert-banner" style="background: rgba(249, 115, 22, 0.1); border: 1px solid var(--orange); padding: 12px; border-radius: 8px; margin: 16px 0; display: flex; gap: 10px; align-items: center;">
+          <i data-lucide="alert-triangle" style="color: var(--orange); flex-shrink: 0;"></i>
+          <div>
+            <strong style="color: var(--orange); font-size: 13px; display: block; margin-bottom: 2px;">Honeypot Profile Alert</strong>
+            <p style="margin: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3;">This candidate profile shows suspicious keyword matching indicators and timeline anomalies.</p>
+          </div>
+        </div>
+      ` : ''}
 
       <div class="qv-scores-grid">
         <div class="qv-score-box">
@@ -606,6 +633,70 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="qv-score-box">
           <span class="num text-green">${cand.intent_score}</span>
           <span class="label">Intent Score</span>
+        </div>
+      </div>
+
+      <div class="qv-insights-section">
+        <h4>Candidate DNA Index (6-Dimensions)</h4>
+        <div class="dna-dimension-bars" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Technical Fit (35%)</span><strong>${dna.technical_fit}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.technical_fit}%; height: 100%; background: var(--cyan); transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Experience Fit (20%)</span><strong>${dna.experience_fit}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.experience_fit}%; height: 100%; background: var(--blue); transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Career Trajectory (10%)</span><strong>${dna.career_trajectory}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.career_trajectory}%; height: 100%; background: var(--purple); transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Behavioral Intent (15%)</span><strong>${dna.behavioral_intent}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.behavioral_intent}%; height: 100%; background: var(--green); transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Credibility (10%)</span><strong>${dna.credibility}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.credibility}%; height: 100%; background: var(--orange); transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+          <div class="dna-bar-item">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+              <span>Hidden Gem (10%)</span><strong>${dna.hidden_gem_score}%</strong>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+              <div class="progress-bar-fill" style="width: ${dna.hidden_gem_score}%; height: 100%; background: #a855f7; transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qv-insights-section reasoning-section">
+        <div class="reasoning-toggle" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 6px 0;" onclick="const det = this.nextElementSibling; det.classList.toggle('hidden'); const icon = this.querySelector('.chevron-icon'); if(det.classList.contains('hidden')){ icon.style.transform='rotate(0deg)'; }else{ icon.style.transform='rotate(180deg)'; }">
+          <h4 style="margin:0;">Recruiter Reasoning Analysis</h4>
+          <i data-lucide="chevron-down" class="chevron-icon icon-tiny text-muted" style="transition: transform 0.2s;"></i>
+        </div>
+        <div class="qv-insight-text hidden" style="margin-top: 8px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid var(--purple); font-size: 12px; line-height: 1.4; color: var(--text-main);">
+          ${cand.reasoning || cand.why_selected}
         </div>
       </div>
 
@@ -1178,11 +1269,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Gem check
     const isGem = cand.categories.includes("hidden_gem");
     const gemBadge = document.getElementById("rec-gem-badge");
-    if (isGem) {
+    if (cand.honeypot_risk) {
+      gemBadge.className = "badge animate-pulse";
+      gemBadge.style.background = "var(--orange)";
+      gemBadge.innerHTML = `<i data-lucide="alert-triangle" class="icon-tiny"></i> HONEYPOT PROFILE FLAG`;
+    } else if (isGem) {
       gemBadge.className = "badge badge-purple animate-pulse";
+      gemBadge.style.background = "";
       gemBadge.innerHTML = `<i data-lucide="gem" class="icon-tiny"></i> HIDDEN GEM MATCH`;
     } else {
       gemBadge.className = "badge badge-cyan";
+      gemBadge.style.background = "";
       gemBadge.innerHTML = `<i data-lucide="user" class="icon-tiny"></i> REGULAR MATCH`;
     }
 
@@ -1236,29 +1333,59 @@ document.addEventListener("DOMContentLoaded", () => {
       gapAnalysisDiv.innerHTML = `<div style="color: var(--text-muted); font-size:12px;">Candidate fully satisfies all technical framework layers. No skill gaps identified.</div>`;
     }
 
+    const dna = cand.candidate_dna || {
+      technical_fit: cand.skill_match_score || 80,
+      experience_fit: cand.experience_score || 80,
+      career_trajectory: cand.potential_score || 80,
+      behavioral_intent: cand.intent_score || 80,
+      credibility: cand.alignment_score || 80,
+      hidden_gem_score: cand.categories.includes("hidden_gem") ? 90 : 50
+    };
+
     // Subscores progress bars
     const subscoresDiv = document.getElementById("rec-subscores");
     subscoresDiv.innerHTML = `
       <div class="subscore-item">
         <div class="subscore-label-row">
-          <span>Skill Match (40%)</span>
-          <strong>${cand.skill_match_score}%</strong>
+          <span>Technical Fit (35%)</span>
+          <strong>${dna.technical_fit}%</strong>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.skill_match_score}%; background: var(--cyan);"></div></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.technical_fit}%; background: var(--cyan);"></div></div>
       </div>
       <div class="subscore-item">
         <div class="subscore-label-row">
-          <span>True Potential (15%)</span>
-          <strong>${cand.potential_score}%</strong>
+          <span>Experience Fit (20%)</span>
+          <strong>${dna.experience_fit}%</strong>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.potential_score}%; background: var(--purple);"></div></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.experience_fit}%; background: var(--blue);"></div></div>
       </div>
       <div class="subscore-item">
         <div class="subscore-label-row">
-          <span>Intent Analysis (10%)</span>
-          <strong>${cand.intent_score}%</strong>
+          <span>Career Trajectory (10%)</span>
+          <strong>${dna.career_trajectory}%</strong>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.intent_score}%; background: var(--green);"></div></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.career_trajectory}%; background: var(--purple);"></div></div>
+      </div>
+      <div class="subscore-item">
+        <div class="subscore-label-row">
+          <span>Behavioral Intent (15%)</span>
+          <strong>${dna.behavioral_intent}%</strong>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.behavioral_intent}%; background: var(--green);"></div></div>
+      </div>
+      <div class="subscore-item">
+        <div class="subscore-label-row">
+          <span>Credibility (10%)</span>
+          <strong>${dna.credibility}%</strong>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.credibility}%; background: var(--orange);"></div></div>
+      </div>
+      <div class="subscore-item">
+        <div class="subscore-label-row">
+          <span>Hidden Gem Score (10%)</span>
+          <strong>${dna.hidden_gem_score}%</strong>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${dna.hidden_gem_score}%; background: #a855f7;"></div></div>
       </div>
     `;
 

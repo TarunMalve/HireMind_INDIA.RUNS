@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
+import { rankCandidate as runRankingEngine } from '../services/rankingEngine';
 
 /**
  * POST /api/ai/chat — AI chat endpoint (placeholder).
@@ -369,6 +370,44 @@ export async function getFutureMatches(
         },
       ],
       _note: 'Placeholder predictions. AI integration pending.',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/ai/rank — Rank a candidate against a job description using the 6-dimension engine.
+ */
+export async function rankCandidate(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    let { candidateId, jobId, candidate, job } = req.body;
+
+    if (!candidate && candidateId) {
+      candidate = await prisma.candidate.findUnique({
+        where: { id: candidateId },
+      });
+    }
+
+    if (!job && jobId) {
+      job = await prisma.job.findUnique({
+        where: { id: jobId },
+      });
+    }
+
+    if (!candidate || !job) {
+      throw new AppError('Candidate and Job must be provided either as IDs or full objects', 400);
+    }
+
+    const evaluation = runRankingEngine(candidate, job);
+
+    res.json({
+      success: true,
+      data: evaluation,
     });
   } catch (error) {
     next(error);
