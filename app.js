@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRecCandidateId = "cand-1";
   let globalSearchQuery = "";
   let marketFilterTag = null;
+  
+  // V2 Globals
+  let currentPortalMode = "recruiter"; // recruiter or candidate
+  let activeCandidateId = "cand-1"; // Helena Rostova (default user for Candidate view)
+  let quizQuestionIdx = 0;
+  let quizCorrectAnswers = 0;
 
   // Chart References (to prevent canvas reuse issues)
   let dnaChartInstance = null;
@@ -29,13 +35,26 @@ document.addEventListener("DOMContentLoaded", () => {
     dna: "dna-view",
     insights: "insights-view",
     notifications: "notifications-view",
-    recommendation: "recommendation-view"
+    recommendation: "recommendation-view",
+    "candidate-dashboard": "candidate-dashboard-view"
   };
 
   function handleRouting() {
     let hash = window.location.hash.substring(1);
     if (!hash || hash === "" || hash === "landing") {
       hash = "landing";
+    }
+
+    // Safeguard route redirects when portal mode changes
+    if (hash === "dashboard" && currentPortalMode === "candidate") {
+      hash = "candidate-dashboard";
+      window.location.hash = "#candidate-dashboard";
+      return;
+    }
+    if (hash === "candidate-dashboard" && currentPortalMode === "recruiter") {
+      hash = "dashboard";
+      window.location.hash = "#dashboard";
+      return;
     }
 
     // Determine Layout (Hide sidebar for landing page)
@@ -66,10 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
         hiddengems: "Hidden Gems Dashboard",
         marketplace: "AI Talent Marketplace",
         pipeline: "Future Talent Pipeline",
-        dna: "Candidate DNA Profiler",
+        dna: currentPortalMode === "candidate" ? "My Skill DNA Profile" : "Candidate DNA Profiler",
         insights: "AI System Insights",
         notifications: "Notifications Center",
-        recommendation: "Explainable AI Match Matrix"
+        recommendation: "Explainable AI Match Matrix",
+        "candidate-dashboard": "Candidate Talent Dashboard"
       };
       
       const titleEl = document.getElementById("page-title");
@@ -96,10 +116,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hash === "hiddengems") loadHiddenGemsView();
     if (hash === "marketplace") loadMarketplaceView();
     if (hash === "pipeline") loadPipelineView();
-    if (hash === "dna") loadCandidateDnaView();
+    if (hash === "dna") {
+      if (currentPortalMode === "candidate") {
+        currentCandidateDnaId = activeCandidateId;
+      }
+      loadCandidateDnaView();
+    }
     if (hash === "insights") loadInsightsView();
     if (hash === "notifications") loadNotificationsView();
     if (hash === "recommendation") loadExplainableAiView();
+    if (hash === "candidate-dashboard") loadCandidateDashboardView();
 
     lucide.createIcons();
   }
@@ -269,57 +295,163 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- VIEW 2: RECRUITER DASHBOARD ---
   function loadDashboardView() {
     const pipelineList = document.getElementById("jobs-pipeline-list");
-    pipelineList.innerHTML = "";
+    if (pipelineList) {
+      pipelineList.innerHTML = "";
+      initialJobs.forEach(job => {
+        const row = document.createElement("div");
+        row.className = "job-row";
+        row.addEventListener("click", () => {
+          activeJobFilter = job.job_id;
+          window.location.hash = "#candidates";
+        });
 
-    initialJobs.forEach(job => {
-      const row = document.createElement("div");
-      row.className = "job-row";
-      row.addEventListener("click", () => {
-        activeJobFilter = job.job_id;
-        window.location.hash = "#candidates";
+        row.innerHTML = `
+          <div class="job-main">
+            <span class="job-title">${job.title}</span>
+            <span class="job-meta">${job.department}</span>
+          </div>
+          <div>
+            <span class="job-stat-label">Applicants</span>
+            <span class="job-stat-val">${job.active_candidates}</span>
+          </div>
+          <div>
+            <span class="job-stat-label">Match Health</span>
+            <span class="job-stat-val text-green">${job.match_health}%</span>
+          </div>
+          <div>
+            <span class="job-stat-label">Core Tech</span>
+            <span class="job-badge bg-blue-tint text-blue">${job.required_skills[0]}</span>
+          </div>
+          <div>
+            <span class="job-stat-label">Action</span>
+            <span class="job-badge bg-purple-tint text-purple" style="cursor: pointer;">Analyze DNA</span>
+          </div>
+        `;
+        pipelineList.appendChild(row);
       });
-
-      row.innerHTML = `
-        <div class="job-main">
-          <span class="job-title">${job.title}</span>
-          <span class="job-meta">${job.department}</span>
-        </div>
-        <div>
-          <span class="job-stat-label">Applicants</span>
-          <span class="job-stat-val">${job.active_candidates}</span>
-        </div>
-        <div>
-          <span class="job-stat-label">Match Health</span>
-          <span class="job-stat-val text-green">${job.match_health}%</span>
-        </div>
-        <div>
-          <span class="job-stat-label">Core Tech</span>
-          <span class="job-badge bg-blue-tint text-blue">${job.required_skills[0]}</span>
-        </div>
-        <div>
-          <span class="job-stat-label">Action</span>
-          <span class="job-badge bg-purple-tint text-purple" style="cursor: pointer;">Analyze DNA</span>
-        </div>
-      `;
-      pipelineList.appendChild(row);
-    });
+    }
 
     const rematchesList = document.getElementById("recent-rematches-list");
-    rematchesList.innerHTML = "";
+    if (rematchesList) {
+      rematchesList.innerHTML = "";
+      rematches.forEach(rematch => {
+        const item = document.createElement("div");
+        item.className = "rematch-item";
+        item.innerHTML = `
+          <img src="${rematch.avatar}" alt="Avatar" class="rematch-avatar">
+          <div class="rematch-info">
+            <span class="rematch-candidate">${rematch.candidateName}</span>
+            <span class="rematch-role">${rematch.newMatchRole}</span>
+          </div>
+          <span class="rematch-score">${rematch.score}%</span>
+        `;
+        rematchesList.appendChild(item);
+      });
+    }
 
-    rematches.forEach(rematch => {
-      const item = document.createElement("div");
-      item.className = "rematch-item";
-      item.innerHTML = `
-        <img src="${rematch.avatar}" alt="Avatar" class="rematch-avatar">
-        <div class="rematch-info">
-          <span class="rematch-candidate">${rematch.candidateName}</span>
-          <span class="rematch-role">${rematch.newMatchRole}</span>
-        </div>
-        <span class="rematch-score">${rematch.score}%</span>
-      `;
-      rematchesList.appendChild(item);
-    });
+    // Populate Recruiter Dashboard widgets dynamically
+    const gemsContainer = document.getElementById("widget-top-gems");
+    if (gemsContainer) {
+      gemsContainer.innerHTML = "";
+      // Grab top candidates / hidden gems
+      const topGemsList = candidates.slice(0, 3);
+      topGemsList.forEach(c => {
+        const isGem = c.categories.includes("hidden_gem");
+        const badge = isGem ? `<span class="badge badge-purple" style="font-size:9px;">GEM</span>` : `<span class="badge badge-cyan" style="font-size:9px;">TOP</span>`;
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        div.style.justifyContent = "space-between";
+        div.style.padding = "8px";
+        div.style.background = "rgba(255,255,255,0.01)";
+        div.style.borderRadius = "8px";
+        div.style.border = "1px solid rgba(255,255,255,0.03)";
+        div.style.cursor = "pointer";
+        div.onclick = () => {
+          currentRecCandidateId = c.id;
+          window.location.hash = "#recommendation";
+        };
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-size:12px; font-weight:600;">${c.name}</span>
+              <span style="font-size:10px; color:var(--text-muted);">${c.title}</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700; color:var(--cyan);">${c.overall_score}%</span>
+            ${badge}
+          </div>
+        `;
+        gemsContainer.appendChild(div);
+      });
+    }
+
+    const leadersContainer = document.getElementById("widget-dna-leaders");
+    if (leadersContainer) {
+      leadersContainer.innerHTML = "";
+      const leadersList = [...candidates].sort((a, b) => b.potential_score - a.potential_score).slice(0, 3);
+      leadersList.forEach(c => {
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        div.style.justifyContent = "space-between";
+        div.style.padding = "8px";
+        div.style.background = "rgba(255,255,255,0.01)";
+        div.style.borderRadius = "8px";
+        div.style.border = "1px solid rgba(255,255,255,0.03)";
+        div.style.cursor = "pointer";
+        div.onclick = () => {
+          currentCandidateDnaId = c.id;
+          window.location.hash = "#dna";
+        };
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-size:12px; font-weight:600;">${c.name}</span>
+              <span style="font-size:10px; color:var(--text-muted);">Future: ${c.predicted_role_2yr}</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            <span style="font-size:11px; color:var(--purple); font-weight:600;">Potential: ${c.potential_score}</span>
+            <span style="font-size:10px; color:var(--green);">Intent: ${c.intent_score}</span>
+          </div>
+        `;
+        leadersContainer.appendChild(div);
+      });
+    }
+
+    const authenticityContainer = document.getElementById("widget-authenticity-list");
+    if (authenticityContainer) {
+      authenticityContainer.innerHTML = "";
+      const authList = candidates.slice(0, 3);
+      authList.forEach(c => {
+        const isVerified = c.authenticity_status === "verified";
+        const statusChip = isVerified 
+          ? `<span class="opp-badge interview" style="padding:2px 6px; font-size:9px;"><i data-lucide="shield-check" class="icon-tiny"></i> Verified (${c.authenticity_score}%)</span>` 
+          : `<span class="opp-badge nurture" style="padding:2px 6px; font-size:9px;"><i data-lucide="clock" class="icon-tiny"></i> Pending</span>`;
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        div.style.justifyContent = "space-between";
+        div.style.padding = "8px";
+        div.style.background = "rgba(255,255,255,0.01)";
+        div.style.borderRadius = "8px";
+        div.style.border = "1px solid rgba(255,255,255,0.03)";
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
+            <span style="font-size:12px; font-weight:600;">${c.name}</span>
+          </div>
+          <div>
+            ${statusChip}
+          </div>
+        `;
+        authenticityContainer.appendChild(div);
+      });
+    }
   }
 
   // --- VIEW 3: CANDIDATE INTELLIGENCE ---
@@ -1164,4 +1296,465 @@ document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
   }
 
+  // --- V2 INTERACTIVE ECOSYSTEM FEATURES ---
+
+  function loadCandidateDashboardView() {
+    const cand = candidates.find(c => c.id === activeCandidateId) || candidates[0];
+    if (!cand) return;
+
+    // Opportunities
+    const oppList = document.getElementById("candidate-opp-list");
+    if (oppList) {
+      oppList.innerHTML = "";
+      cand.active_opportunities.forEach(opp => {
+        const item = document.createElement("div");
+        item.className = "opp-item-card";
+        
+        let statusClass = "review";
+        if (opp.status === "Pre-Screened" || opp.status === "Interview Scheduled") statusClass = "interview";
+        if (opp.status === "Stored in Talent Pool" || opp.status === "Nurturing Pipeline") statusClass = "nurture";
+        
+        item.innerHTML = `
+          <div class="opp-meta">
+            <h4>${opp.role}</h4>
+            <span>Match Probability: <strong class="text-cyan">${opp.match}%</strong></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="opp-badge ${statusClass}">${opp.status}</span>
+            <button class="btn btn-secondary btn-small" id="cand-opp-view-btn-${opp.job_id}">View DNA Match</button>
+          </div>
+        `;
+        oppList.appendChild(item);
+
+        document.getElementById(`cand-opp-view-btn-${opp.job_id}`).onclick = () => {
+          currentRecCandidateId = cand.id;
+          window.location.hash = "#recommendation";
+        };
+      });
+    }
+
+    // Timeline Learning Roadmap (Second Chance AI)
+    const timeline = document.getElementById("candidate-roadmap-timeline");
+    if (timeline) {
+      timeline.innerHTML = "";
+      cand.learning_roadmap.timeline.forEach((step, idx) => {
+        const stepDiv = document.createElement("div");
+        stepDiv.className = `timeline-roadmap-step ${step.completed ? "completed" : ""}`;
+        stepDiv.id = `roadmap-step-${idx}`;
+        
+        // Let them click the step to simulate completing it!
+        stepDiv.style.cursor = step.completed ? "default" : "pointer";
+        
+        stepDiv.innerHTML = `
+          <div class="timeline-node-dot"></div>
+          <div class="timeline-step-content">
+            <h5>${step.goal}</h5>
+            <span>Target timeframe: ${step.term}</span>
+          </div>
+          <div>
+            ${step.completed 
+              ? `<i data-lucide="check" class="text-green" style="width:16px; height:16px;"></i>` 
+              : `<i data-lucide="circle" class="text-muted" style="width:16px; height:16px;"></i>`
+            }
+          </div>
+        `;
+        timeline.appendChild(stepDiv);
+
+        if (!step.completed) {
+          stepDiv.title = "Click to mark as completed and update your DNA!";
+          stepDiv.onclick = () => {
+            step.completed = true;
+            // Update scores!
+            cand.potential_score = Math.min(100, cand.potential_score + 2);
+            cand.overall_score = Math.min(100, cand.overall_score + 1);
+            cand.skill_match_score = Math.min(100, cand.skill_match_score + 2);
+            
+            // Show alert
+            alert(`Congratulations! You completed: "${step.goal}". Your Skill DNA and Match scores have been updated in real-time.`);
+            loadCandidateDashboardView();
+            loadDashboardView(); // sync recruiter widget
+          };
+        }
+      });
+    }
+
+    // Authenticity challenge box rendering
+    renderQuizWidget(cand);
+
+    // Prediction card details
+    const roleBadge = document.getElementById("cand-predicted-role-val");
+    if (roleBadge) roleBadge.textContent = cand.predicted_role_2yr;
+    
+    const confVal = document.getElementById("cand-predicted-conf-val");
+    if (confVal) confVal.textContent = cand.prediction_confidence;
+
+    const ratVal = document.getElementById("cand-prediction-rationale-val");
+    if (ratVal) ratVal.textContent = cand.prediction_rationale;
+
+    lucide.createIcons();
+  }
+
+  function renderQuizWidget(cand) {
+    const quizBody = document.getElementById("quiz-widget-body");
+    if (!quizBody) return;
+
+    if (cand.authenticity_status === "verified") {
+      quizBody.innerHTML = `
+        <div style="text-align:center; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+          <i data-lucide="shield-check" class="text-green" style="width:48px; height:48px;"></i>
+          <h4 style="margin:0; color:var(--green);">Claim Authenticity Verified</h4>
+          <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+            Your skill assertions in <strong>${cand.authenticity_challenge.topic}</strong> have been validated through our dynamic challenger.
+          </p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-top:8px;">
+            <div style="background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Authenticity Score</span>
+              <strong style="font-size:16px; color:var(--cyan);">${cand.authenticity_score}%</strong>
+            </div>
+            <div style="background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Knowledge Confidence</span>
+              <strong style="font-size:16px; color:var(--purple);">${cand.knowledge_confidence_score}%</strong>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Otherwise, we load the quiz status
+    if (cand.authenticity_challenge.questions_answered === 0) {
+      quizBody.innerHTML = `
+        <div style="text-align:center; padding:8px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:center;"><i data-lucide="award" class="text-purple" style="width:36px; height:36px;"></i></div>
+          <h4 style="margin:0; font-size:14px;">Dynamic Verification Challenge</h4>
+          <p style="font-size:11px; color:var(--text-muted); line-height:1.4; margin:0;">
+            Based on your resume, our AI generated a challenge on <strong>${cand.authenticity_challenge.topic}</strong>. Answer these 3 adaptive questions.
+          </p>
+          <button class="btn btn-primary btn-small" id="start-auth-quiz-btn" style="margin-top:5px; width:100%;">Start Challenge</button>
+        </div>
+      `;
+
+      document.getElementById("start-auth-quiz-btn").onclick = () => {
+        cand.authenticity_challenge.questions_answered = 1;
+        quizQuestionIdx = 0;
+        quizCorrectAnswers = 0;
+        renderQuizWidget(cand);
+      };
+    } else {
+      // Quiz in progress
+      const questions = authenticityQuestionDb[cand.authenticity_challenge.topic];
+      const q = questions[quizQuestionIdx];
+
+      let optionsHtml = "";
+      q.options.forEach((opt, oIdx) => {
+        optionsHtml += `<button class="quiz-option-btn" data-idx="${oIdx}">${opt}</button>`;
+      });
+
+      quizBody.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
+            <span>Topic: ${cand.authenticity_challenge.topic}</span>
+            <span>Question ${quizQuestionIdx + 1} of 3</span>
+          </div>
+          <div class="quiz-question-header">${q.question}</div>
+          <div class="quiz-options-list">${optionsHtml}</div>
+          <div class="quiz-feedback-box hidden" id="quiz-feedback"></div>
+          <button class="btn btn-secondary btn-small hidden" id="quiz-next-btn" style="width:100%;">Next Question</button>
+        </div>
+      `;
+
+      // Option button clicks
+      const optBtns = quizBody.querySelectorAll(".quiz-option-btn");
+      const feedbackBox = quizBody.querySelector("#quiz-feedback");
+      const nextBtn = quizBody.querySelector("#quiz-next-btn");
+
+      optBtns.forEach(btn => {
+        btn.onclick = () => {
+          // disable all
+          optBtns.forEach(b => b.disabled = true);
+          
+          const chosen = parseInt(btn.getAttribute("data-idx"));
+          if (chosen === q.correct) {
+            btn.classList.add("correct-choice");
+            quizCorrectAnswers++;
+            feedbackBox.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
+            feedbackBox.style.borderColor = "var(--green)";
+            feedbackBox.style.color = "var(--green)";
+          } else {
+            btn.classList.add("wrong-choice");
+            optBtns[q.correct].classList.add("correct-choice");
+            feedbackBox.innerHTML = `<strong>Incorrect.</strong> ${q.explanation}`;
+            feedbackBox.style.borderColor = "#ef4444";
+            feedbackBox.style.color = "#ef4444";
+          }
+          feedbackBox.classList.remove("hidden");
+          nextBtn.classList.remove("hidden");
+        };
+      });
+
+      nextBtn.onclick = () => {
+        quizQuestionIdx++;
+        if (quizQuestionIdx < 3) {
+          renderQuizWidget(cand);
+        } else {
+          // Finished!
+          cand.authenticity_status = "verified";
+          cand.authenticity_score = Math.round((quizCorrectAnswers / 3) * 100);
+          cand.knowledge_confidence_score = Math.round((quizCorrectAnswers / 3) * 100) - Math.floor(Math.random() * 8);
+          // Clamp score minimum
+          if (cand.knowledge_confidence_score < 50) cand.knowledge_confidence_score = 62;
+          
+          // Boost matching score in ecosystem!
+          cand.overall_score = Math.min(100, cand.overall_score + 4);
+          cand.skill_match_score = Math.min(100, cand.skill_match_score + 5);
+          
+          alert(`Verification challenge complete! Authenticity verified at ${cand.authenticity_score}%. Match Score updated in real-time.`);
+          loadCandidateDashboardView();
+          loadDashboardView(); // sync recruiter widget
+        }
+      };
+    }
+    lucide.createIcons();
+  }
+
+  function initEcosystemV2Features() {
+    // 3D Parallax Rotation
+    const heroBox = document.getElementById("landing-view");
+    const heroCard = document.getElementById("hero-3d-card");
+    if (heroBox && heroCard) {
+      heroBox.addEventListener("mousemove", (e) => {
+        const boxRect = heroBox.getBoundingClientRect();
+        const x = e.clientX - boxRect.left - boxRect.width / 2;
+        const y = e.clientY - boxRect.top - boxRect.height / 2;
+        
+        const rotY = (x / (boxRect.width / 2)) * 20; // max 20deg
+        const rotX = -(y / (boxRect.height / 2)) * 20;
+        
+        heroCard.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+      });
+
+      heroBox.addEventListener("mouseleave", () => {
+        heroCard.style.transform = "rotateY(15deg) rotateX(10deg)"; // reset
+      });
+    }
+
+    // Portal SWITCHER Click logic
+    const recSwitch = document.getElementById("portal-switch-recruiter");
+    const candSwitch = document.getElementById("portal-switch-candidate");
+    
+    const recGroup = document.getElementById("nav-recruiter-group");
+    const candGroup = document.getElementById("nav-candidate-group");
+
+    if (recSwitch && candSwitch) {
+      recSwitch.addEventListener("click", () => {
+        currentPortalMode = "recruiter";
+        recSwitch.classList.add("active");
+        candSwitch.classList.remove("active");
+        
+        recGroup.classList.remove("hidden");
+        candGroup.classList.add("hidden");
+        
+        window.location.hash = "#dashboard";
+      });
+
+      candSwitch.addEventListener("click", () => {
+        currentPortalMode = "candidate";
+        candSwitch.classList.add("active");
+        recSwitch.classList.remove("active");
+        
+        candGroup.classList.remove("hidden");
+        recGroup.classList.add("hidden");
+        
+        window.location.hash = "#candidate-dashboard";
+      });
+    }
+
+    // Landing Page CTAs mapping
+    const recCta = document.getElementById("landing-recruiter-cta");
+    const candCta = document.getElementById("landing-candidate-cta");
+
+    if (recCta && candCta) {
+      recCta.onclick = (e) => {
+        e.preventDefault();
+        currentPortalMode = "recruiter";
+        if (recSwitch) {
+          recSwitch.click();
+        } else {
+          window.location.hash = "#dashboard";
+        }
+      };
+
+      candCta.onclick = (e) => {
+        e.preventDefault();
+        currentPortalMode = "candidate";
+        if (candSwitch) {
+          candSwitch.click();
+        } else {
+          window.location.hash = "#candidate-dashboard";
+        }
+      };
+    }
+
+    // Live Product Demo Simulator
+    const demoBtn = document.getElementById("demo-trigger-btn");
+    const demoEmpty = document.getElementById("demo-empty-result");
+    const demoActual = document.getElementById("demo-actual-result");
+    const scanLine = document.getElementById("demo-scan-line");
+    
+    const demoStep1 = document.getElementById("demo-step-1");
+    const demoStep2 = document.getElementById("demo-step-2");
+    const demoStep3 = document.getElementById("demo-step-3");
+
+    if (demoBtn) {
+      demoBtn.onclick = () => {
+        demoBtn.disabled = true;
+        demoBtn.textContent = "AI Sourcing Engine Running...";
+        demoEmpty.classList.remove("hidden");
+        demoActual.classList.add("hidden");
+        scanLine.style.display = "block";
+
+        // Step animations
+        demoStep1.className = "pipeline-step-item active";
+        demoStep1.querySelector("i").setAttribute("data-lucide", "loader");
+        demoStep2.className = "pipeline-step-item";
+        demoStep2.querySelector("i").setAttribute("data-lucide", "circle");
+        demoStep3.className = "pipeline-step-item";
+        demoStep3.querySelector("i").setAttribute("data-lucide", "circle");
+        lucide.createIcons();
+
+        setTimeout(() => {
+          demoStep1.className = "pipeline-step-item completed";
+          demoStep1.querySelector("i").setAttribute("data-lucide", "check-circle");
+          demoStep2.className = "pipeline-step-item active";
+          demoStep2.querySelector("i").setAttribute("data-lucide", "loader");
+          lucide.createIcons();
+          
+          setTimeout(() => {
+            demoStep2.className = "pipeline-step-item completed";
+            demoStep2.querySelector("i").setAttribute("data-lucide", "check-circle");
+            demoStep3.className = "pipeline-step-item active";
+            demoStep3.querySelector("i").setAttribute("data-lucide", "loader");
+            lucide.createIcons();
+
+            setTimeout(() => {
+              demoStep3.className = "pipeline-step-item completed";
+              demoStep3.querySelector("i").setAttribute("data-lucide", "check-circle");
+              lucide.createIcons();
+              
+              // End scan
+              scanLine.style.display = "none";
+              demoEmpty.classList.add("hidden");
+              demoActual.classList.remove("hidden");
+              demoBtn.disabled = false;
+              demoBtn.textContent = "Run AI Intelligence Scan";
+            }, 1000);
+          }, 1200);
+        }, 1000);
+      };
+    }
+
+    // AI Chat drawer toggles
+    const chatToggle = document.getElementById("chat-drawer-toggle");
+    const chatDrawer = document.getElementById("ai-chat-drawer");
+    const chatChevron = document.getElementById("chat-chevron");
+
+    if (chatToggle && chatDrawer) {
+      chatToggle.onclick = () => {
+        chatDrawer.classList.toggle("chat-collapsed");
+        const isCollapsed = chatDrawer.classList.contains("chat-collapsed");
+        chatChevron.setAttribute("data-lucide", isCollapsed ? "chevron-up" : "chevron-down");
+        lucide.createIcons();
+        if (!isCollapsed) {
+          renderChatChips();
+        }
+      };
+    }
+
+    // Send chat message
+    const sendBtn = document.getElementById("chat-send-btn");
+    const chatInput = document.getElementById("chat-user-input");
+    if (sendBtn && chatInput) {
+      sendBtn.onclick = () => {
+        submitChatMessage(chatInput.value);
+      };
+      chatInput.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          submitChatMessage(chatInput.value);
+        }
+      };
+    }
+  }
+
+  function renderChatChips() {
+    const chipsContainer = document.getElementById("chat-chips-container");
+    if (!chipsContainer) return;
+    
+    chipsContainer.innerHTML = "";
+    let chips = [];
+    if (currentPortalMode === "recruiter") {
+      chips = ["Show Backend gems", "Highest growth potential?", "Likely to become Tech Leads?"];
+    } else {
+      chips = ["What skills am I missing?", "How to improve my score?", "View matching jobs"];
+    }
+
+    chips.forEach(text => {
+      const chip = document.createElement("button");
+      chip.className = "chat-chip";
+      chip.textContent = text;
+      chip.onclick = () => {
+        submitChatMessage(text);
+      };
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  function submitChatMessage(msgText) {
+    if (!msgText.trim()) return;
+    const msgWrap = document.getElementById("chat-messages-container");
+    const input = document.getElementById("chat-user-input");
+    if (!msgWrap) return;
+
+    // Clear input
+    if (input) input.value = "";
+
+    // Append user message
+    const userMsg = document.createElement("div");
+    userMsg.className = "chat-msg user";
+    userMsg.textContent = msgText;
+    msgWrap.appendChild(userMsg);
+    msgWrap.scrollTop = msgWrap.scrollHeight;
+
+    // Simulate typing and reply
+    setTimeout(() => {
+      let replyText = "";
+      const text = msgText.toLowerCase();
+
+      if (text.includes("backend gems")) {
+        replyText = "I identified Helena Rostova (Vue.js/GCP → React/AWS, Match: 93%) and Marcus Vance (Docker/Python → Kubernetes/Go, Match: 89%) as top backend and frontend hidden gems in the ecosystem.";
+      } else if (text.includes("growth potential") || text.includes("potential")) {
+        replyText = "Helena Rostova holds the highest True Potential index of 96, showing rapid progression to Principal Architect roles within 24 months.";
+      } else if (text.includes("tech leads") || text.includes("leaders")) {
+        replyText = "Liam O'Connor (VP of Cloud Ops prediction) and Kenji Tanaka (Director of AI Research prediction) are flagged as high-potential tech leads.";
+      } else if (text.includes("skills am i missing") || text.includes("missing")) {
+        replyText = "You have gaps in AWS Cloud Infrastructure and GraphQL Federation. Check your customized Learning Hub roadmap to begin training.";
+      } else if (text.includes("improve my score") || text.includes("improve")) {
+        replyText = "You can improve your overall Match score by verifying your skills in the Resume Authenticity Challenge (+15%) or completing the AWS/GraphQL certs in your Learning Hub (+12%).";
+      } else if (text.includes("matching jobs") || text.includes("jobs")) {
+        replyText = "You currently correlate to Senior Frontend Architect (93% match) and Full Stack Engineer (86% match).";
+      } else {
+        replyText = "I've analyzed the Talent DNA profiles, mapped skill adjacencies, and scored verification rates. Let me know if you would like me to summarize any candidate or job match.";
+      }
+
+      const botMsg = document.createElement("div");
+      botMsg.className = "chat-msg bot";
+      botMsg.textContent = replyText;
+      msgWrap.appendChild(botMsg);
+      msgWrap.scrollTop = msgWrap.scrollHeight;
+    }, 800);
+  }
+
+  // Initialize V2 Ecosystem Features once
+  initEcosystemV2Features();
+
+  lucide.createIcons();
 });

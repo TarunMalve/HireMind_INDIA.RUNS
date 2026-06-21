@@ -35,6 +35,122 @@ const initialJobs = [
   }
 ];
 
+const authenticityQuestionDb = {
+  "React": [
+    {
+      id: "react-1",
+      question: "What is the primary purpose of the Virtual DOM in React?",
+      options: [
+        "To directly manipulate the browser HTML for speed",
+        "To store data in a secure browser database",
+        "To keep a lightweight representation of the UI in memory and sync it with the real DOM via reconciliation",
+        "To enable server-side database connections"
+      ],
+      correct: 2,
+      explanation: "The Virtual DOM is a programming concept where an ideal, or 'virtual', representation of a UI is kept in memory and synced with the 'real' DOM by a library such as ReactDOM (reconciliation)."
+    },
+    {
+      id: "react-2",
+      question: "What is the key difference between State and Props in React?",
+      options: [
+        "State is managed within the component and can change; Props are passed to the component and are read-only",
+        "State is read-only; Props can be modified by the child component",
+        "Props are stored on the server; State is stored on the client",
+        "There is no difference; they are aliases for the same object"
+      ],
+      correct: 0,
+      explanation: "Props (short for properties) are passed into a component by its parent and are immutable inside that component. State is local state variables managed within the component itself and can be updated."
+    },
+    {
+      id: "react-3",
+      question: "When does the callback function of useEffect run by default if no dependency array is provided?",
+      options: [
+        "Only once when the component mounts",
+        "After every render cycle of the component",
+        "Only when the component unmounts",
+        "Only when a state variable changes"
+      ],
+      correct: 1,
+      explanation: "If no dependency array is passed to useEffect, it runs after the first render and after every single update/render cycle."
+    }
+  ],
+  "AWS": [
+    {
+      id: "aws-1",
+      question: "What does Amazon S3 stand for and what is it primarily used for?",
+      options: [
+        "Simple Database Service; relational databases",
+        "Simple Storage Service; scalable object storage",
+        "System Security Shield; network firewalling",
+        "Server Side Sync; load balancing"
+      ],
+      correct: 1,
+      explanation: "Amazon S3 stands for Simple Storage Service. It is object storage built to store and retrieve any amount of data from anywhere on the web."
+    },
+    {
+      id: "aws-2",
+      question: "What is a major architectural difference between EC2 and AWS Lambda?",
+      options: [
+        "EC2 is serverless; Lambda requires managing virtual machines",
+        "EC2 provides virtual servers that run continuously; Lambda is serverless and executes code only in response to events, scaling automatically",
+        "EC2 only supports Windows; Lambda only supports Linux"
+      ],
+      correct: 1,
+      explanation: "EC2 provides persistent virtual machines (IaaS) where you pay for uptime. Lambda is a Serverless FaaS (Function as a Service) where you pay only for compute time consumed per invocation."
+    },
+    {
+      id: "aws-3",
+      question: "What is the purpose of Auto Scaling in AWS?",
+      options: [
+        "To increase the size of S3 buckets automatically",
+        "To automatically adjust the number of EC2 instances to handle load changes",
+        "To speed up the network latency between regions",
+        "To encrypt all database tables automatically"
+      ],
+      correct: 1,
+      explanation: "AWS Auto Scaling monitors your applications and automatically adjusts capacity (adding or removing EC2 instances) to maintain steady, predictable performance at the lowest possible cost."
+    }
+  ],
+  "REST API": [
+    {
+      id: "rest-1",
+      question: "What does REST stand for in API design?",
+      options: [
+        "Remote Encryption Security Transfer",
+        "Representational State Transfer",
+        "Request Response Standard Template",
+        "Routing Engine for Socket Transmission"
+      ],
+      correct: 1,
+      explanation: "REST stands for Representational State Transfer. It is an architectural style for providing standards between computer systems on the web, making it easier for systems to communicate."
+    },
+    {
+      id: "rest-2",
+      question: "In REST, what is the main difference between HTTP PUT and POST methods?",
+      options: [
+        "PUT is for deleting data; POST is for fetching it",
+        "POST is idempotent; PUT is not",
+        "PUT is idempotent (repeated requests yield the same state); POST is typically used to create new resources and is not idempotent",
+        "POST can only send plain text; PUT can send JSON"
+      ],
+      correct: 2,
+      explanation: "PUT is idempotent, meaning calling it multiple times with the same data will produce the same result (usually updating a resource). POST is not idempotent, as calling it multiple times will create multiple new resources."
+    },
+    {
+      id: "rest-3",
+      question: "When should a REST API return an HTTP 404 Status Code?",
+      options: [
+        "When the server encounters an internal server error",
+        "When the requested resource could not be found on the server",
+        "When the request was successful and data was returned",
+        "When the client is not authenticated to access the resource"
+      ],
+      correct: 1,
+      explanation: "The HTTP 404 Not Found response status code indicates that the server cannot find the requested resource. This can mean the endpoint exists but the specific resource does not, or the URL itself is invalid."
+    }
+  ]
+};
+
 const candidates = [
   {
     id: "cand-1",
@@ -70,7 +186,28 @@ const candidates = [
     prediction_confidence: "91%",
     prediction_rationale: "Given her technical growth velocity and strong communication scores, Helena is on track to lead enterprise frontend architectures within 24 months.",
     readiness: { technical: 92, communication: 95, domain: 88, culture: 93 },
-    target_job_id: "job-1"
+    target_job_id: "job-1",
+    authenticity_score: 0,
+    knowledge_confidence_score: 0,
+    authenticity_status: "pending",
+    authenticity_challenge: {
+      topic: "React",
+      questions_answered: 0,
+      score: 0
+    },
+    learning_roadmap: {
+      missing_skills: ["AWS Cloud Infrastructure", "GraphQL Engine", "CI/CD Orchestration"],
+      certifications: ["AWS Certified Developer - Associate", "HashiCorp Terraform Associate"],
+      timeline: [
+        { term: "Month 1-3", goal: "Complete AWS Cloud Foundations and Serverless Deployment", completed: false },
+        { term: "Month 4-6", goal: "Implement Apollo GraphQL Federation on Kubernetes", completed: false },
+        { term: "Month 7-9", goal: "Secure CI/CD Pipelines via Terraform & GitHub Actions", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Senior Frontend Architect", match: 93, status: "Under Review", job_id: "job-1" },
+      { role: "Full Stack Engineer", match: 86, status: "Nurturing Pipeline", job_id: "none" }
+    ]
   },
   {
     id: "cand-2",
@@ -106,7 +243,27 @@ const candidates = [
     prediction_confidence: "86%",
     prediction_rationale: "His intense interest in container internals and infrastructure makes him a natural fit for infrastructure engineering and platform lead roles.",
     readiness: { technical: 86, communication: 90, domain: 89, culture: 92 },
-    target_job_id: "job-2"
+    target_job_id: "job-2",
+    authenticity_score: 95,
+    knowledge_confidence_score: 92,
+    authenticity_status: "verified",
+    authenticity_challenge: {
+      topic: "REST API",
+      questions_answered: 3,
+      score: 100
+    },
+    learning_roadmap: {
+      missing_skills: ["Go Concurrency Models", "Production Kubernetes Operations", "Istio Service Mesh"],
+      certifications: ["Certified Kubernetes Administrator (CKA)", "Go Programming Specialist"],
+      timeline: [
+        { term: "Month 1-2", goal: "Go routines, channel patterns, and garbage collector tuning", completed: true },
+        { term: "Month 3-4", goal: "Deploying multi-tenant Kubernetes clusters with CKA guidelines", completed: false },
+        { term: "Month 5-6", goal: "Set up Istio service meshes for microservice security", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Distributed Systems Engineer", match: 89, status: "Pre-Screened", job_id: "job-2" }
+    ]
   },
   {
     id: "cand-3",
@@ -142,7 +299,26 @@ const candidates = [
     prediction_confidence: "89%",
     prediction_rationale: "Kenji demonstrates natural academic leadership and team mentorship, positioning him well to run a modern AI laboratory.",
     readiness: { technical: 98, communication: 92, domain: 96, culture: 89 },
-    target_job_id: "job-3"
+    target_job_id: "job-3",
+    authenticity_score: 100,
+    knowledge_confidence_score: 98,
+    authenticity_status: "verified",
+    authenticity_challenge: {
+      topic: "React",
+      questions_answered: 3,
+      score: 100
+    },
+    learning_roadmap: {
+      missing_skills: ["Production LLM Serving", "Distributed Training Scales (Megatron-LM)", "CUDA Programming"],
+      certifications: ["NVIDIA CUDA Programming Specialist"],
+      timeline: [
+        { term: "Month 1-3", goal: "Optimize Triton Inference Server configurations for NLP pipelines", completed: true },
+        { term: "Month 4-6", goal: "Implement Megatron-LM tensor parallelisms across 128 GPUs", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "AI Research Scientist", match: 95, status: "Interview Scheduled", job_id: "job-3" }
+    ]
   },
   {
     id: "cand-4",
@@ -178,7 +354,26 @@ const candidates = [
     prediction_confidence: "87%",
     prediction_rationale: "Aisha's rapid technology adoption curves suggest that adding cloud backend capabilities to her frontend mastery will make her a strong full-stack dev inside 2 years.",
     readiness: { technical: 83, communication: 92, domain: 85, culture: 91 },
-    target_job_id: "job-1"
+    target_job_id: "job-1",
+    authenticity_score: 0,
+    knowledge_confidence_score: 0,
+    authenticity_status: "pending",
+    authenticity_challenge: {
+      topic: "React",
+      questions_answered: 0,
+      score: 0
+    },
+    learning_roadmap: {
+      missing_skills: ["AWS Serverless Architectures", "Docker Containerizations", "Next.js SSR Cache Optimizations"],
+      certifications: ["AWS Certified Developer"],
+      timeline: [
+        { term: "Month 1-2", goal: "Understand static and dynamic server configurations in Next.js", completed: true },
+        { term: "Month 3-5", goal: "Complete AWS Developer Course and build serverless apps", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Senior Frontend Architect", match: 87, status: "Under Review", job_id: "job-1" }
+    ]
   },
   {
     id: "cand-5",
@@ -214,11 +409,30 @@ const candidates = [
     prediction_confidence: "85%",
     prediction_rationale: "His maturity, systems thinking, and leadership capabilities make Liam the ideal candidate to scale infrastructure divisions.",
     readiness: { technical: 92, communication: 90, domain: 91, culture: 94 },
-    target_job_id: "job-4"
+    target_job_id: "job-4",
+    authenticity_score: 90,
+    knowledge_confidence_score: 88,
+    authenticity_status: "verified",
+    authenticity_challenge: {
+      topic: "AWS",
+      questions_answered: 3,
+      score: 100
+    },
+    learning_roadmap: {
+      missing_skills: ["Python Microservices", "Security & Encryption at Scale", "Multi-cloud Architectures"],
+      certifications: ["AWS Certified Security - Specialty"],
+      timeline: [
+        { term: "Month 1-3", goal: "Design secure cross-account role configurations in AWS Organizations", completed: true },
+        { term: "Month 4-6", goal: "Automate SOC2 compliance checks using Terraform scripts", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Lead DevOps Specialist", match: 91, status: "Under Review", job_id: "job-4" }
+    ]
   },
   {
     id: "cand-6",
-    name: "Elena Rostova (Marketplace Profile)",
+    name: "Elena Rostova",
     title: "Senior Node/Svelte Developer",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
     experience: 5,
@@ -249,7 +463,26 @@ const candidates = [
     prediction_confidence: "88%",
     prediction_rationale: "Has natural technical coaching qualities and handles full-stack architectures fluently.",
     readiness: { technical: 86, communication: 89, domain: 82, culture: 88 },
-    target_job_id: "none"
+    target_job_id: "none",
+    authenticity_score: 0,
+    knowledge_confidence_score: 0,
+    authenticity_status: "pending",
+    authenticity_challenge: {
+      topic: "React",
+      questions_answered: 0,
+      score: 0
+    },
+    learning_roadmap: {
+      missing_skills: ["React Core Architecture", "SvelteKit SSR Implementations", "WebSockets Scalability"],
+      certifications: ["Svelte Core Specialist Certificate"],
+      timeline: [
+        { term: "Month 1-3", goal: "Review React virtual reconciliation and build comparative hooks in Svelte", completed: false },
+        { term: "Month 4-6", goal: "Complete WebSockets node clustering architecture courses", completed: false }
+      ]
+    },
+    active_opportunities: [
+      { role: "Full Stack Team Lead", match: 88, status: "Stored in Talent Pool", job_id: "none" }
+    ]
   }
 ];
 

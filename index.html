@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HireMind AI | Futuristic Talent Intelligence Platform</title>
+  <meta name="description" content="HireMind AI is a next-generation Talent Intelligence Ecosystem that discovers hidden gems, predicts career potential, verifies resume claim authenticity dynamically, and builds long-term talent pipelines.">
   <!-- Google Fonts: Inter & Space Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,47 +27,281 @@
   <div id="app-wrapper">
     
     <!-- Landing Page View -->
-    <section id="landing-view" class="view active">
-      <header class="landing-header glass-element">
+    <section id="landing-view" class="view active" style="overflow-y: auto; height: 100vh; width: 100vw; display: block; padding: 40px 0;">
+      <header class="landing-header glass-element" style="width: 90%; max-width: 1200px; margin: 0 auto 40px auto; display: flex; justify-content: space-between; align-items: center;">
         <div class="logo">
           <i data-lucide="brain-circuit" class="logo-icon glow-cyan"></i>
           <span class="logo-text">HIREMIND <span class="accent-text">AI</span></span>
         </div>
-        <a href="#dashboard" class="btn btn-secondary glass-btn">Enter App</a>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <a href="#dashboard" class="btn btn-secondary glass-btn">Enter App</a>
+        </div>
       </header>
 
-      <div class="landing-hero">
-        <div class="hero-badge animate-fade-in">
-          <i data-lucide="sparkles" class="icon-small text-cyan"></i>
-          <span>The Next Generation Talent Ecosystem</span>
+      <!-- Hero Section V2 Split -->
+      <div class="landing-hero-split">
+        <div class="hero-text-block">
+          <div class="hero-badge animate-fade-in" style="width: fit-content;">
+            <i data-lucide="sparkles" class="icon-small text-cyan"></i>
+            <span>Talent Intelligence Ecosystem V2</span>
+          </div>
+          <h1 class="hero-title animate-title" style="margin: 0; font-size: 56px;">
+            Don't Hire Resumes.<br>
+            <span class="gradient-text font-space">Discover Human Potential.</span>
+          </h1>
+          <p class="hero-subtitle animate-fade-in-delayed" style="margin: 0; font-size: 16px; line-height: 1.6;">
+            HireMind AI discovers Hidden Gems, predicts True Potential, validates authenticity, and reconnects talent with future opportunities. Move beyond resume filtering.
+          </p>
+          <div class="hero-actions animate-fade-in-delayed" style="margin-top: 10px;">
+            <a href="#dashboard" class="btn btn-primary glow-btn" id="landing-recruiter-cta">Start Hiring</a>
+            <a href="#dashboard" class="btn btn-outline" id="landing-candidate-cta">Explore Talent Intelligence</a>
+          </div>
         </div>
-        <h1 class="hero-title animate-title">
-          Don't Hire the Best Resume.<br>
-          <span class="gradient-text font-space">Hire the Best Human.</span>
-        </h1>
-        <p class="hero-subtitle animate-fade-in-delayed">
-          Move beyond outdated ATS systems. Discover hidden gems, predict true career potential, analyze intent, and explain every hiring recommendation transparently.
-        </p>
-        <div class="hero-actions animate-fade-in-delayed">
-          <a href="#dashboard" class="btn btn-primary glow-btn">Launch Platform</a>
-          <a href="#marketplace" class="btn btn-outline">Explore Talent Pool</a>
+
+        <!-- 3D Floating DNA Card -->
+        <div class="hero-card-perspective animate-fade-in-delayed">
+          <div class="floating-dna-card" id="hero-3d-card">
+            <div class="dna-card-header">
+              <h3><i data-lucide="fingerprint" class="glow-cyan"></i> CANDIDATE DNA</h3>
+              <span class="badge badge-purple" style="font-size: 10px;">V2 ENGINE</span>
+            </div>
+            <div class="dna-card-body">
+              <div class="dna-stat-row">
+                <span class="dna-stat-label"><i data-lucide="gem" class="text-purple"></i> Hidden Gem Score</span>
+                <span class="dna-stat-value text-purple">94%</span>
+              </div>
+              <div class="dna-stat-row">
+                <span class="dna-stat-label"><i data-lucide="compass" class="text-cyan"></i> Intent Score</span>
+                <span class="dna-stat-value text-cyan">96%</span>
+              </div>
+              <div class="dna-stat-row">
+                <span class="dna-stat-label"><i data-lucide="trending-up" class="text-blue"></i> Growth Potential</span>
+                <span class="dna-stat-value text-blue">95%</span>
+              </div>
+              <div class="dna-stat-row">
+                <span class="dna-stat-label"><i data-lucide="layers" class="text-green"></i> Skill Match</span>
+                <span class="dna-stat-value text-green">Vue.js → React (91%)</span>
+              </div>
+              <div class="dna-stat-row" style="border: none;">
+                <span class="dna-stat-label"><i data-lucide="eye" class="text-orange"></i> Future Role</span>
+                <span class="dna-stat-value text-orange">Full Stack Architect</span>
+              </div>
+            </div>
+            <div class="dna-card-footer">
+              Predicted Arc: Evolving into <strong>Full Stack Architect</strong> within 2 years.
+            </div>
+          </div>
         </div>
-        
-        <div class="hero-features animate-fade-in-delayed">
-          <div class="mini-card glass-card">
-            <i data-lucide="gem" class="icon-medium text-purple"></i>
+      </div>
+
+      <!-- SECTION 1: The Problem (ATS vs. HireMind) -->
+      <div class="landing-section">
+        <div class="section-header">
+          <span class="tag badge-purple" style="margin-bottom: 8px;">The Structural Pitfalls</span>
+          <h2>Traditional ATS vs. Talent Intelligence</h2>
+          <p>Why modern recruiting pipelines fail and how HireMind V2 corrects the course.</p>
+        </div>
+
+        <div class="comparison-grid">
+          <!-- Traditional ATS Column -->
+          <div class="comparison-box traditional">
+            <h3 class="text-orange"><i data-lucide="x-circle"></i> Outdated Resume Filter</h3>
+            <ul class="comparison-list">
+              <li>
+                <i data-lucide="ban" class="text-orange"></i>
+                <div>
+                  <strong>Keyword Matching:</strong> Rejects candidate if "AWS" is missing, ignoring deep transferable skills in Google Cloud or Azure.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="alert-circle" class="text-orange"></i>
+                <div>
+                  <strong>Resume Filtering:</strong> Discards non-traditional backgrounds, losing self-taught geniuses and fast-learners.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="user-minus" class="text-orange"></i>
+                <div>
+                  <strong>Hidden Talent Loss:</strong> Focuses on past credentials instead of predicting the candidate's learning rate and trajectory.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="ghost" class="text-orange"></i>
+                <div>
+                  <strong>Candidate Ghosting:</strong> Once rejected, the candidate is discarded into a database graveyard and never contacted again.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- HireMind Column -->
+          <div class="comparison-box hiremind">
+            <h3 class="text-cyan"><i data-lucide="check-circle-2"></i> HireMind Talent Ecosystem</h3>
+            <ul class="comparison-list">
+              <li>
+                <i data-lucide="check" class="text-cyan"></i>
+                <div>
+                  <strong>Cognitive Competency Maps:</strong> Mapped 34 skill adjacencies, understanding Vue.js equates React and GCP equals AWS.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="check" class="text-cyan"></i>
+                <div>
+                  <strong>True Potential Engine:</strong> Predicts trajectory, promotion readiness, and technical evolution over a 24-month horizon.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="check" class="text-cyan"></i>
+                <div>
+                  <strong>Intent Analysis:</strong> Checks GitHub commits, hackathons, and certifications to score domain commitment.
+                </div>
+              </li>
+              <li>
+                <i data-lucide="check" class="text-cyan"></i>
+                <div>
+                  <strong>Future Opportunity Engine:</strong> Auto-rematches rejected talent to future open roles. No talent left behind.
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: The HireMind Difference -->
+      <div class="landing-section">
+        <div class="section-header">
+          <span class="tag badge-cyan" style="margin-bottom: 8px;">The Core Pillars</span>
+          <h2>Ecosystem Innovation Modules</h2>
+          <p>Ten interconnected AI subsystems working in unison to uncover, predict, and nurture potential.</p>
+        </div>
+
+        <div class="difference-grid">
+          <!-- Card 1 -->
+          <div class="diff-card">
+            <i data-lucide="gem" class="text-purple"></i>
             <h4>Hidden Gems</h4>
-            <p>Maps equivalent skills beyond raw keywords.</p>
+            <p>Recovers top performers whose resumes lack precise keywords by discovering adjacent technical competencies.</p>
           </div>
-          <div class="mini-card glass-card">
-            <i data-lucide="trending-up" class="icon-medium text-blue"></i>
+          <!-- Card 2 -->
+          <div class="diff-card">
+            <i data-lucide="trending-up" class="text-blue"></i>
             <h4>True Potential</h4>
-            <p>Predicts trajectory & skill acquisition rate.</p>
+            <p>Predicts expected career acceleration paths, promotion readiness, and expected skill acquisition rates.</p>
           </div>
-          <div class="mini-card glass-card">
-            <i data-lucide="compass" class="icon-medium text-cyan"></i>
+          <!-- Card 3 -->
+          <div class="diff-card">
+            <i data-lucide="compass" class="text-cyan"></i>
             <h4>Intent Analysis</h4>
-            <p>Uncovers true interest via open-source/projects.</p>
+            <p>Leverages learning records, open-source activity, and hackathon presence to measure long-term commitment.</p>
+          </div>
+          <!-- Card 4 -->
+          <div class="diff-card">
+            <i data-lucide="fingerprint" class="text-green"></i>
+            <h4>Candidate DNA</h4>
+            <p>Charts a multi-dimensional capability index including technical strength, agility, collaboration, and innovation.</p>
+          </div>
+          <!-- Card 5 -->
+          <div class="diff-card">
+            <i data-lucide="git-branch" class="text-orange"></i>
+            <h4>Future Opportunity</h4>
+            <p>Ensures 'No Talent Left Behind' by continually checking candidate DNA against subsequent job openings.</p>
+          </div>
+          <!-- Card 6 -->
+          <div class="diff-card">
+            <i data-lucide="rotate-ccw" class="text-purple"></i>
+            <h4>Second Chance AI</h4>
+            <p>Equips unsuccessful applicants with a custom learning roadmap and timeline, tracking improvements automatically.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: Live Product Demo -->
+      <div class="landing-section">
+        <div class="section-header">
+          <span class="tag badge-purple" style="margin-bottom: 8px;">Interactive Preview</span>
+          <h2>Watch AI Sourcing in Real Time</h2>
+          <p>Upload files or run the simulation below to witness Candidate DNA extraction and mapping.</p>
+        </div>
+
+        <div class="demo-window">
+          <div class="demo-header">
+            <div class="window-dots">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted);">HIREMIND_INTELLIGENCE_SIMULATOR</span>
+            <span style="width: 30px;"></span>
+          </div>
+          
+          <div class="demo-body-split">
+            <!-- Left panel -->
+            <div class="demo-left-panel">
+              <div class="demo-upload-wrapper">
+                <div class="demo-upload-box active" id="demo-resume-box">
+                  <i data-lucide="file-text" class="text-cyan"></i>
+                  <h5>Helena_Resume.pdf</h5>
+                  <span id="demo-resume-status">Vue.js, GCP Cloud</span>
+                </div>
+                <div class="demo-upload-box active" id="demo-jd-box">
+                  <i data-lucide="briefcase" class="text-purple"></i>
+                  <h5>Senior_Frontend_Architect</h5>
+                  <span id="demo-jd-status">React, AWS Cloud Required</span>
+                </div>
+              </div>
+
+              <!-- Scanning animation bar -->
+              <div class="scanning-bar-anim" id="demo-scan-line" style="display: block; margin: 15px 0;"></div>
+
+              <div class="pipeline-status-indicator">
+                <div class="pipeline-step-item active" id="demo-step-1">
+                  <i data-lucide="check-circle" class="icon-tiny"></i>
+                  <span>Step 1: Parse resume keywords and technical frameworks</span>
+                </div>
+                <div class="pipeline-step-item" id="demo-step-2">
+                  <i data-lucide="loader" class="icon-tiny animate-spin"></i>
+                  <span>Step 2: Map skill adjacencies (Vue.js -> React)</span>
+                </div>
+                <div class="pipeline-step-item" id="demo-step-3">
+                  <i data-lucide="circle" class="icon-tiny"></i>
+                  <span>Step 3: Score growth potential & intent metrics</span>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="demo-trigger-btn" style="width: 100%;">Run AI Intelligence Scan</button>
+            </div>
+
+            <!-- Right panel -->
+            <div class="demo-right-panel" id="demo-result-panel">
+              <div style="text-align: center; color: var(--text-muted); padding: 20px;" id="demo-empty-result">
+                <i data-lucide="cpu" class="icon-large text-dark animate-pulse" style="margin-bottom: 12px; width: 48px; height: 48px;"></i>
+                <p style="font-size: 13px;">AI Analysis Engine idle. Press the button on the left to start the simulation.</p>
+              </div>
+
+              <!-- Output widget hidden initially -->
+              <div class="demo-output-card hidden" id="demo-actual-result">
+                <div class="demo-output-header">
+                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="Helena" class="demo-output-avatar">
+                  <div>
+                    <h5 style="margin:0; font-size:14px;">Helena Rostova</h5>
+                    <span style="font-size:10px; color:var(--text-muted);">UI Dev • 6 Yrs Exp</span>
+                  </div>
+                  <span class="badge badge-purple" style="margin-left:auto; font-size:9px;">HIDDEN GEM</span>
+                </div>
+                
+                <div class="demo-gauge-wrap">
+                  <svg width="120" height="120" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.04)" stroke-width="8" fill="none" />
+                    <circle cx="50" cy="50" r="40" stroke="var(--cyan)" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="17" />
+                  </svg>
+                  <div class="demo-gauge-num">93%</div>
+                </div>
+
+                <div style="font-size: 11px; line-height: 1.4; color: var(--text-muted); background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
+                  <strong>AI Match Rationale:</strong> Expert in Vue.js and GCP Cloud. Maps directly to requested React & AWS architect layers via cognitive transfer.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,38 +321,55 @@
           </button>
         </div>
 
-        <nav class="sidebar-nav">
-          <div class="nav-section">Main Workspace</div>
-          <a href="#dashboard" class="nav-item active" data-view="dashboard">
-            <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
-          </a>
-          <a href="#candidates" class="nav-item" data-view="candidates">
-            <i data-lucide="users"></i> <span>Candidate Intelligence</span>
-          </a>
-          <a href="#hiddengems" class="nav-item" data-view="hiddengems">
-            <i data-lucide="gem"></i> <span>Hidden Gems</span>
-            <span class="badge badge-purple animate-pulse">4</span>
-          </a>
+        <nav class="sidebar-nav" id="sidebar-navigation">
+          <!-- Recruiter navigation links -->
+          <div id="nav-recruiter-group">
+            <div class="nav-section">Main Workspace</div>
+            <a href="#dashboard" class="nav-item active" data-view="dashboard">
+              <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
+            </a>
+            <a href="#candidates" class="nav-item" data-view="candidates">
+              <i data-lucide="users"></i> <span>Candidate Intelligence</span>
+            </a>
+            <a href="#hiddengems" class="nav-item" data-view="hiddengems">
+              <i data-lucide="gem"></i> <span>Hidden Gems</span>
+              <span class="badge badge-purple animate-pulse">4</span>
+            </a>
 
-          <div class="nav-section">Talent Ecosystem</div>
-          <a href="#marketplace" class="nav-item" data-view="marketplace">
-            <i data-lucide="globe"></i> <span>Talent Marketplace</span>
-          </a>
-          <a href="#pipeline" class="nav-item" data-view="pipeline">
-            <i data-lucide="git-branch"></i> <span>Future Talent Pipeline</span>
-          </a>
-          <a href="#dna" class="nav-item" data-view="dna">
-            <i data-lucide="fingerprint"></i> <span>Candidate DNA</span>
-          </a>
+            <div class="nav-section">Talent Ecosystem</div>
+            <a href="#marketplace" class="nav-item" data-view="marketplace">
+              <i data-lucide="globe"></i> <span>Talent Marketplace</span>
+            </a>
+            <a href="#pipeline" class="nav-item" data-view="pipeline">
+              <i data-lucide="git-branch"></i> <span>Future Talent Pipeline</span>
+            </a>
+            <a href="#dna" class="nav-item" data-view="dna">
+              <i data-lucide="fingerprint"></i> <span>Candidate DNA</span>
+            </a>
 
-          <div class="nav-section">Intelligence</div>
-          <a href="#insights" class="nav-item" data-view="insights">
-            <i data-lucide="bar-chart-3"></i> <span>AI Insights</span>
-          </a>
-          <a href="#notifications" class="nav-item" data-view="notifications">
-            <i data-lucide="bell"></i> <span>Notifications</span>
-            <span class="badge badge-cyan" id="notif-count">3</span>
-          </a>
+            <div class="nav-section">Intelligence</div>
+            <a href="#insights" class="nav-item" data-view="insights">
+              <i data-lucide="bar-chart-3"></i> <span>AI Insights</span>
+            </a>
+            <a href="#notifications" class="nav-item" data-view="notifications">
+              <i data-lucide="bell"></i> <span>Notifications</span>
+              <span class="badge badge-cyan" id="notif-count">3</span>
+            </a>
+          </div>
+
+          <!-- Candidate navigation links (hidden by default) -->
+          <div id="nav-candidate-group" class="hidden">
+            <div class="nav-section">Candidate Workspace</div>
+            <a href="#candidate-dashboard" class="nav-item" data-view="candidate-dashboard" id="nav-cand-dash-link">
+              <i data-lucide="layout-dashboard"></i> <span>My Dashboard</span>
+            </a>
+            <a href="#dna" class="nav-item" data-view="dna" id="nav-cand-dna-link">
+              <i data-lucide="fingerprint"></i> <span>My DNA Profile</span>
+            </a>
+            <a href="#notifications" class="nav-item" data-view="notifications" id="nav-cand-notif-link">
+              <i data-lucide="bell"></i> <span>Ecosystem Alerts</span>
+            </a>
+          </div>
         </nav>
 
         <div class="sidebar-footer">
@@ -138,8 +390,12 @@
       <main class="main-content">
         <!-- Floating Navigation Header -->
         <header class="content-header glass-header">
-          <div class="header-left">
-            <h2 id="page-title">Recruiter Dashboard</h2>
+          <div class="header-left" style="display:flex; align-items:center; gap:20px;">
+            <h2 id="page-title" style="margin:0;">Recruiter Dashboard</h2>
+            <div class="portal-switch-wrapper" id="global-portal-switch">
+              <button class="portal-switch-btn active" id="portal-switch-recruiter" data-portal="recruiter">Recruiter Portal</button>
+              <button class="portal-switch-btn" id="portal-switch-candidate" data-portal="candidate">Candidate Portal</button>
+            </div>
           </div>
           <div class="header-right">
             <div class="search-bar glass-element">
@@ -235,6 +491,71 @@
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <!-- Recruiter Intelligence Widgets Row -->
+              <div class="recruiter-widgets-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                
+                <!-- Widget: Top Candidates & Hidden Gems -->
+                <div class="glass-card">
+                  <div class="panel-header border-bottom" style="padding-bottom:10px; margin-bottom:15px;">
+                    <h3><i data-lucide="gem" class="text-purple icon-small"></i> Hidden Gems & Top Fits</h3>
+                  </div>
+                  <div class="widget-list" id="widget-top-gems" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Loaded dynamically -->
+                  </div>
+                </div>
+
+                <!-- Widget: Leadership & Intent Leaders -->
+                <div class="glass-card">
+                  <div class="panel-header border-bottom" style="padding-bottom:10px; margin-bottom:15px;">
+                    <h3><i data-lucide="trending-up" class="text-cyan icon-small"></i> Talent DNA Leaders (Intent & Growth)</h3>
+                  </div>
+                  <div class="widget-list" id="widget-dna-leaders" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Loaded dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Recruiter Widget Row 2: Authenticity & Funnels -->
+              <div class="recruiter-widgets-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:20px;">
+                
+                <!-- Widget: Authenticity Verifications -->
+                <div class="glass-card">
+                  <div class="panel-header border-bottom" style="padding-bottom:10px; margin-bottom:15px;">
+                    <h3><i data-lucide="shield-check" class="text-green icon-small"></i> Resume Authenticity Verifications</h3>
+                  </div>
+                  <div class="widget-list" id="widget-authenticity-list" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Loaded dynamically -->
+                  </div>
+                </div>
+
+                <!-- Widget: Hiring Funnel Analytics -->
+                <div class="glass-card">
+                  <div class="panel-header border-bottom" style="padding-bottom:10px; margin-bottom:15px;">
+                    <h3><i data-lucide="git-merge" class="text-blue icon-small"></i> Hiring Funnel Analytics</h3>
+                  </div>
+                  <div class="funnel-analytics-bars" style="display:flex; flex-direction:column; gap:12px; padding:5px 0;">
+                    <div class="subscore-item">
+                      <div class="subscore-label-row"><span>Sourced DNA Profiles</span><strong>1,482</strong></div>
+                      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 100%; background: var(--blue);"></div></div>
+                    </div>
+                    <div class="subscore-item">
+                      <div class="subscore-label-row"><span>Authenticity Screened</span><strong>924</strong></div>
+                      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 62%; background: var(--cyan);"></div></div>
+                    </div>
+                    <div class="subscore-item">
+                      <div class="subscore-label-row"><span>Qualified Matches</span><strong>184</strong></div>
+                      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 12%; background: var(--purple);"></div></div>
+                    </div>
+                    <div class="subscore-item">
+                      <div class="subscore-label-row"><span>Interviews & Offers</span><strong>32</strong></div>
+                      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 4%; background: var(--green);"></div></div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </section>
@@ -635,10 +956,102 @@
             </div>
           </section>
 
+          <!-- View 11: Candidate Dashboard View -->
+          <section id="candidate-dashboard-view" class="view-panel hidden">
+            <div class="candidate-grid-layout">
+              <!-- Left Column: Growth & Opportunities -->
+              <div class="panel-main-side" style="display:flex; flex-direction:column; gap:24px;">
+                
+                <!-- Match Score & Active Opportunities -->
+                <div class="glass-card">
+                  <div class="panel-header">
+                    <h3>My Matching Opportunities</h3>
+                    <span class="subtitle" style="font-size:12px; color:var(--text-muted);">Active openings that correlate with your technical DNA.</span>
+                  </div>
+                  <div class="opp-card-list" id="candidate-opp-list">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                </div>
+
+                <!-- Second Chance AI learning roadmap -->
+                <div class="glass-card roadmap-card">
+                  <div class="panel-header">
+                    <h3>Second Chance AI - Custom Learning Hub</h3>
+                    <span class="badge badge-purple">Nurturing Track</span>
+                  </div>
+                  <p style="font-size:13px; color:var(--text-muted); margin-top:-10px;">
+                    We matched your adjacent skills. Complete the certifications below to address gaps, update your Talent DNA, and auto-qualify for higher roles.
+                  </p>
+                  
+                  <div class="timeline-roadmap-flow" id="candidate-roadmap-timeline">
+                    <!-- Dynamic timeline steps loaded dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Column: DNA & Challenges -->
+              <div class="panel-sidebar-side" style="display:flex; flex-direction:column; gap:24px;">
+                
+                <!-- Resume Authenticity Challenge Widget -->
+                <div class="glass-card authenticity-challenge-box" id="auth-challenge-card">
+                  <h3>Verify Your Skill DNA</h3>
+                  <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                    Candidates who verify claims before screening receive a <strong class="text-cyan">2.4x interview rate</strong>. Prove your proficiency.
+                  </p>
+                  <div class="quiz-container" id="quiz-widget-body">
+                    <!-- Dynamic Questions load here -->
+                  </div>
+                </div>
+
+                <!-- Future Role Prediction Widget -->
+                <div class="glass-card">
+                  <h3>Future Role Prediction (2-Year Growth)</h3>
+                  <div class="predicted-role-badge" id="cand-predicted-role-val">Loading...</div>
+                  <div class="confidence-indicator">
+                    <span>Ecosystem confidence level:</span>
+                    <strong class="text-purple" id="cand-predicted-conf-val">87%</strong>
+                  </div>
+                  <p style="font-size:12px; color:var(--text-muted); line-height:1.4;" id="cand-prediction-rationale-val">
+                    Based on your learning agility index, you are highly aligned to scale into this architect role.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
         </div>
       </main>
     </div>
 
+  </div>
+
+  <!-- AI Chat Assistant Drawer -->
+  <div class="ai-chat-assistant-drawer chat-collapsed" id="ai-chat-drawer">
+    <div class="chat-drawer-header" id="chat-drawer-toggle">
+      <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="message-square" class="text-cyan" style="width: 16px; height: 16px;"></i>
+        <span>HireMind AI Chatbot</span>
+      </h3>
+      <button class="close-btn" style="color: white; border: none; background: transparent; cursor: pointer;">
+        <i data-lucide="chevron-up" id="chat-chevron" style="width: 16px; height: 16px;"></i>
+      </button>
+    </div>
+    <div class="chat-drawer-body">
+      <div class="chat-messages-wrap" id="chat-messages-container">
+        <div class="chat-msg bot">
+          Hello! I am your HireMind AI Assistant. I can help recruiters identify hidden gems, find tech leads, or summarize DNA. Candidates can ask about their learning roadmap or matching opportunities. How can I help you today?
+        </div>
+      </div>
+      <div class="chat-suggested-chips" id="chat-chips-container">
+        <!-- Preset chips load dynamically based on mode -->
+      </div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-text-input" id="chat-user-input" placeholder="Type a message...">
+        <button class="chat-send-btn" id="chat-send-btn"><i data-lucide="send" style="width: 14px; height: 14px;"></i></button>
+      </div>
+    </div>
   </div>
 
   <!-- Upload Modal -->
