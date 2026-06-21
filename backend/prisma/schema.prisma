@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String
+  lastName  String
+  role      UserRole @default(CANDIDATE)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidate     Candidate?
+  recruiter     Recruiter?
+  notifications Notification[]
+
+  @@index([clerkId])
+  @@index([email])
+}
+
+enum UserRole {
+  RECRUITER
+  CANDIDATE
+  ADMIN
+}
+
+model Candidate {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  headline       String?
+  summary        String?  @db.Text
+  resumeUrl      String?
+  resumeText     String?  @db.Text
+  skills         String[]
+  experience     Json     @default("[]")
+  education      Json     @default("[]")
+  certifications String[]
+  portfolioUrls  String[]
+  linkedinUrl    String?
+  githubUrl      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dna                CandidateDNA?
+  applications       Application[]
+  intentAnalyses     IntentAnalysis[]
+  truePotential      TruePotential?
+  hiddenGemAnalyses  HiddenGemAnalysis[]
+  challenges         AuthenticityChallenge[]
+  talentTwins        TalentTwin[]        @relation("TwinSource")
+  twinOf             TalentTwin[]        @relation("TwinTarget")
+  futureMatches      FutureMatch[]
+  learningRoadmaps   LearningRoadmap[]
+
+  @@index([userId])
+}
+
+model Recruiter {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  company    String
+  title      String?
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs Job[]
+
+  @@index([userId])
+}
+
+model Job {
+  id           String    @id @default(uuid())
+  recruiterId  String
+  title        String
+  company      String
+  description  String    @db.Text
+  requirements String[]
+  niceToHave   String[]
+  skills       String[]
+  location     String
+  locationType String    @default("REMOTE")
+  salaryMin    Float?
+  salaryMax    Float?
+  currency     String    @default("USD")
+  status       JobStatus @default(ACTIVE)
+  embedding    Float[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  recruiter         Recruiter           @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  applications      Application[]
+  intentAnalyses    IntentAnalysis[]
+  hiddenGemAnalyses HiddenGemAnalysis[]
+
+  @@index([recruiterId])
+  @@index([status])
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+model Application {
+  id                String            @id @default(uuid())
+  candidateId       String
+  jobId             String
+  status            ApplicationStatus @default(APPLIED)
+  matchScore        Float             @default(0)
+  intentScore       Float             @default(0)
+  potentialScore    Float             @default(0)
+  authenticityScore Float             @default(0)
+  hiddenGemScore    Float             @default(0)
+  overallRank       Int               @default(0)
+  aiExplanation     String            @db.Text
+  transferableSkills Json             @default("[]")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@index([candidateId])
+  @@index([jobId])
+  @@index([status])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+  SECOND_CHANCE
+}
+
+model CandidateDNA {
+  id              String   @id @default(uuid())
+  candidateId     String   @unique
+  technicalDepth  Float    @default(0)
+  problemSolving  Float    @default(0)
+  leadership      Float    @default(0)
+  communication   Float    @default(0)
+  creativity      Float    @default(0)
+  adaptability    Float    @default(0)
+  domainExpertise Float    @default(0)
+  growthTrajectory Float   @default(0)
+  overallScore    Float    @default(0)
+  strengths       String[]
+  growthAreas     String[]
+  embedding       Float[]
+  generatedAt     DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([overallScore])
+}
+
+model IntentAnalysis {
+  id               String   @id @default(uuid())
+  candidateId      String
+  jobId            String
+  intentScore      Float    @default(0)
+  signals          Json     @default("[]")
+  genuineInterest  Float    @default(0)
+  culturalAlignment Float   @default(0)
+  longTermFit      Float    @default(0)
+  analysis         String   @db.Text
+  createdAt        DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([jobId])
+}
+
+model TruePotential {
+  id               String   @id @default(uuid())
+  candidateId      String   @unique
+  currentLevel     String
+  predictedLevel   String
+  timeframeMonths  Int      @default(24)
+  potentialScore   Float    @default(0)
+  growthFactors    Json     @default("[]")
+  careerTrajectory Json     @default("[]")
+  analysis         String   @db.Text
+  createdAt        DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model HiddenGemAnalysis {
+  id                    String   @id @default(uuid())
+  candidateId           String
+  jobId                 String
+  gemScore              Float    @default(0)
+  transferableSkills    Json     @default("[]")
+  unconventionalStrengths String[]
+  adjacentExperience    String[]
+  analysis              String   @db.Text
+  createdAt             DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([jobId])
+}
+
+model AuthenticityChallenge {
+  id                  String             @id @default(uuid())
+  candidateId         String
+  questions           Json               @default("[]")
+  overallScore        Float              @default(0)
+  knowledgeConfidence Float              @default(0)
+  status              VerificationStatus @default(PENDING)
+  completedAt         DateTime?
+  createdAt           DateTime           @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([status])
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  CHALLENGED
+}
+
+model TalentTwin {
+  id              String   @id @default(uuid())
+  candidateId     String
+  twinCandidateId String
+  similarityScore Float    @default(0)
+  sharedStrengths String[]
+  differentiators String[]
+  createdAt       DateTime @default(now())
+
+  candidate     Candidate @relation("TwinSource", fields: [candidateId], references: [id], onDelete: Cascade)
+  twinCandidate Candidate @relation("TwinTarget", fields: [twinCandidateId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, twinCandidateId])
+  @@index([candidateId])
+}
+
+model FutureMatch {
+  id              String   @id @default(uuid())
+  candidateId     String
+  predictedRole   String
+  predictedCompany String?
+  matchProbability Float   @default(0)
+  requiredGrowth  String[]
+  timeframeMonths Int      @default(12)
+  createdAt       DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model LearningRoadmap {
+  id             String   @id @default(uuid())
+  candidateId    String
+  title          String
+  milestones     Json     @default("[]")
+  targetRole     String
+  estimatedWeeks Int      @default(12)
+  progress       Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String           @db.Text
+  read      Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+enum NotificationType {
+  MATCH
+  STATUS_UPDATE
+  CHALLENGE
+  LEARNING
+  SYSTEM
+  FUTURE_ROLE
+}
