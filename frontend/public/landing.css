@@ -1285,7 +1285,7 @@ body.landing-active {
 
 .feature-card-wrapper {
   perspective: 1000px;
-  height: 340px;
+  height: 100%;
 }
 
 .feature-card-inner {
@@ -1294,6 +1294,7 @@ body.landing-active {
   height: 100%;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
+  display: grid;
 }
 
 .feature-card-inner.flipped {
@@ -1302,19 +1303,19 @@ body.landing-active {
 
 .feature-card-front,
 .feature-card-back {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: var(--lp-radius);
+  border-radius: 8px;
   border: 1px solid var(--lp-border);
   padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  min-height: 340px;
 }
 
 .feature-card-front {
