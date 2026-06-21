@@ -40,6 +40,35 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function handleRouting() {
+    // Sync portal mode with logged in user type if available
+    const loggedInType = localStorage.getItem('hm-user-type');
+    if (loggedInType) {
+      currentPortalMode = loggedInType;
+      // Sync portal switch UI buttons if they exist
+      const recSwitch = document.getElementById("portal-switch-recruiter");
+      const candSwitch = document.getElementById("portal-switch-candidate");
+      const recGroup = document.getElementById("nav-recruiter-group");
+      const candGroup = document.getElementById("nav-candidate-group");
+      
+      if (recSwitch && candSwitch) {
+        if (currentPortalMode === 'candidate') {
+          candSwitch.classList.add("active");
+          recSwitch.classList.remove("active");
+          if (candGroup && recGroup) {
+            candGroup.classList.remove("hidden");
+            recGroup.classList.add("hidden");
+          }
+        } else {
+          recSwitch.classList.add("active");
+          candSwitch.classList.remove("active");
+          if (candGroup && recGroup) {
+            recGroup.classList.remove("hidden");
+            candGroup.classList.add("hidden");
+          }
+        }
+      }
+    }
+
     let hash = window.location.hash.substring(1);
     if (!hash || hash === "" || hash === "landing") {
       hash = "landing";
@@ -289,6 +318,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.hash = "#notifications";
   });
   document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.removeItem('hm-logged-in');
+    localStorage.removeItem('hm-user-email');
+    localStorage.removeItem('hm-user-type');
+    localStorage.removeItem('hm-onboarded');
     window.location.hash = "#landing";
   });
 

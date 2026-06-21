@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HireMind AI | Futuristic Talent Intelligence Platform</title>
-  <meta name="description" content="HireMind AI is a next-generation Talent Intelligence Ecosystem that discovers hidden gems, predicts career potential, verifies resume claim authenticity dynamically, and builds long-term talent pipelines.">
+  <title>HireMind AI | Evidence-Driven Hire Probability Engine</title>
+  <meta name="description" content="HireMind AI is the world's first Evidence-Driven Hire Probability Engine. Stop matching resumes — start predicting hiring success with AI-powered candidate intelligence.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="HireMind AI | Evidence-Driven Hire Probability Engine">
+  <meta property="og:description" content="Stop ranking resumes. Start predicting hiring success. HireMind's multiplicative Hire Probability Engine surfaces the candidates most likely to be hired successfully.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HireMind AI">
+  <meta name="twitter:description" content="Evidence-Driven Hire Probability Engine for modern recruiters.">
   <!-- Google Fonts: Inter & Space Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,297 +22,718 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Three.js for 3D Brain/Constellation Background -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- Custom Stylesheet -->
+  <!-- Custom Stylesheets -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="landing.css">
 </head>
 <body class="dark-theme">
   <!-- 3D Canvas Background -->
   <div id="three-container"></div>
   <div class="overlay-glow"></div>
 
-  <!-- Main Application Wrapper -->
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ============================================================ -->
+  <!-- AUTH MODALS -->
+  <!-- ============================================================ -->
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="modal-login">
+    <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <button class="modal-close" aria-label="Close" onclick="document.getElementById('modal-login').classList.remove('open');document.body.style.overflow=''">&times;</button>
+      <div class="auth-modal-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#lg1)"/><path d="M8 18l4-8 4 4 4-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;">HireMind <span style="background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
+      </div>
+      <h2 class="auth-modal-title" id="login-title">Welcome back</h2>
+      <p class="auth-modal-subtitle">Sign in to your HireMind account</p>
+
+      <div class="auth-type-toggle">
+        <button class="auth-type-btn active" data-user-type="recruiter">Recruiter</button>
+        <button class="auth-type-btn" data-user-type="candidate">Candidate</button>
+      </div>
+
+      <form class="auth-form" id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="login-email">Work Email</label>
+          <input class="form-input" type="email" id="login-email" placeholder="you@company.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input class="form-input" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="auth-submit-btn">Sign In →</button>
+      </form>
+
+      <div class="auth-divider"><span></span><span>or continue with</span><span></span></div>
+      <button class="social-auth-btn" type="button">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.6 0 6.5 1.2 8.9 3.2l6.6-6.6C35.5 2.4 30.2 0 24 0 14.8 0 7 5.4 3.2 13.3l7.7 6C12.8 13.2 17.9 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.7-.1-3.4-.4-5H24v9.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.9 28.7A14.5 14.5 0 0 1 9.5 24c0-1.7.3-3.3.8-4.8L2.6 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l8.3-5.9z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.1 0-11.2-3.7-13.1-9l-7.7 6C7 42.6 14.8 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+
+      <p class="auth-switch">Don't have an account? <a href="#" data-switch-modal="modal-register">Create one free →</a></p>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL (Multi-step) -->
+  <div class="modal-overlay" id="modal-register">
+    <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
+      <button class="modal-close" aria-label="Close" onclick="document.getElementById('modal-register').classList.remove('open');document.body.style.overflow=''">&times;</button>
+      <div class="auth-modal-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#lg2)"/><path d="M8 18l4-8 4 4 4-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg2" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;">Create Account</span>
+      </div>
+
+      <div class="auth-type-toggle">
+        <button class="auth-type-btn active" data-user-type="recruiter">I'm a Recruiter</button>
+        <button class="auth-type-btn" data-user-type="candidate">I'm a Candidate</button>
+      </div>
+
+      <!-- Step Indicators -->
+      <div class="step-indicator">
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+
+      <!-- Step 1: Basics -->
+      <div class="form-step active" data-step="1">
+        <h3 style="font-size:18px;margin-bottom:20px;">Your basics</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input class="form-input" type="text" placeholder="Alex" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" type="text" placeholder="Johnson" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Work Email</label>
+          <input class="form-input" type="email" placeholder="you@company.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" placeholder="Min. 8 characters" required>
+        </div>
+      </div>
+
+      <!-- Step 2: Role info -->
+      <div class="form-step" data-step="2">
+        <h3 style="font-size:18px;margin-bottom:20px;">Your role</h3>
+        <div class="form-group">
+          <label class="form-label">Company / Organization</label>
+          <input class="form-input" type="text" placeholder="e.g. Acme Corp" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Title</label>
+          <input class="form-input" type="text" placeholder="e.g. Senior Technical Recruiter">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Team Size</label>
+          <select class="form-input">
+            <option value="">Select team size...</option>
+            <option>Just me</option>
+            <option>2–10 people</option>
+            <option>11–50 people</option>
+            <option>50+ people</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 3: Confirm -->
+      <div class="form-step" data-step="3">
+        <h3 style="font-size:18px;margin-bottom:12px;">Almost there! 🚀</h3>
+        <p style="font-size:13px;color:var(--lp-text-muted);line-height:1.7;margin-bottom:24px;">By creating an account, you agree to HireMind's Terms of Service and Privacy Policy. You'll get access to the full Hire Probability Engine, candidate intelligence reports, and recruiter dashboard.</p>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:12px;">
+          <input type="checkbox" id="terms-check" style="width:16px;height:16px;accent-color:var(--lp-accent);cursor:pointer;">
+          <label for="terms-check" style="font-size:13px;color:var(--lp-text-muted);cursor:pointer;">I agree to the Terms of Service and Privacy Policy</label>
+        </div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;">
+          <input type="checkbox" id="updates-check" checked style="width:16px;height:16px;accent-color:var(--lp-accent);cursor:pointer;">
+          <label for="updates-check" style="font-size:13px;color:var(--lp-text-muted);cursor:pointer;">Send me product updates and hiring insights</label>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="step-back-btn" type="button" style="visibility:hidden;">← Back</button>
+        <button class="step-next-btn" type="button">Continue →</button>
+      </div>
+
+      <p class="auth-switch">Already have an account? <a href="#" data-switch-modal="modal-login">Sign in →</a></p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APPLICATION WRAPPER -->
+  <!-- ============================================================ -->
   <div id="app-wrapper">
-    
-    <!-- Landing Page View -->
-    <section id="landing-view" class="view active" style="overflow-y: auto; height: 100vh; width: 100vw; display: block; padding: 40px 0;">
-      <header class="landing-header glass-element" style="width: 90%; max-width: 1200px; margin: 0 auto 40px auto; display: flex; justify-content: space-between; align-items: center;">
-        <div class="logo">
-          <i data-lucide="brain-circuit" class="logo-icon glow-cyan"></i>
-          <span class="logo-text">HIREMIND <span class="accent-text">AI</span></span>
-        </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <a href="#dashboard" class="btn btn-secondary glass-btn">Enter App</a>
-        </div>
-      </header>
 
-      <!-- Hero Section V2 Split -->
-      <div class="landing-hero-split">
-        <div class="hero-text-block">
-          <div class="hero-badge animate-fade-in" style="width: fit-content;">
-            <i data-lucide="sparkles" class="icon-small text-cyan"></i>
-            <span>Talent Intelligence Ecosystem V2</span>
+    <!-- ====================================================== -->
+    <!-- LANDING PAGE VIEW -->
+    <!-- ====================================================== -->
+    <section id="landing-view" class="view active lp-page">
+
+      <!-- ── STICKY NAVBAR ── -->
+      <nav class="lp-nav" id="lp-navbar" role="navigation" aria-label="Main navigation">
+        <div class="lp-nav-inner">
+          <!-- Logo -->
+          <a href="#" class="lp-nav-logo" aria-label="HireMind Home">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="16" fill="url(#nav-logo-grad)"/>
+              <path d="M9 22l5-10 5 5 5-7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="nav-logo-grad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+            </svg>
+            <span class="lp-logo-text">HireMind <span class="lp-logo-accent">AI</span></span>
+          </a>
+
+          <!-- Desktop Nav Links -->
+          <div class="lp-nav-links" role="menubar">
+            <a href="#lp-features" class="lp-nav-link" role="menuitem">Features</a>
+            <a href="#lp-how" class="lp-nav-link" role="menuitem">How It Works</a>
+            <a href="#lp-product" class="lp-nav-link" role="menuitem">Product</a>
+            <a href="#lp-pricing" class="lp-nav-link" role="menuitem">Pricing</a>
+            <a href="#" class="lp-nav-link" role="menuitem" data-open-modal="modal-login" id="nav-enter-app">Enter App</a>
           </div>
-          <h1 class="hero-title animate-title" style="margin: 0; font-size: 56px;">
-            Don't Hire Resumes.<br>
-            <span class="gradient-text font-space">Discover Human Potential.</span>
+
+          <!-- Right Actions -->
+          <div class="lp-nav-actions">
+            <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme" title="Switch theme">
+              <i data-lucide="sun" id="theme-icon" style="width:16px;height:16px;"></i>
+            </button>
+            <button class="lp-btn-login" data-open-modal="modal-login" id="nav-login-btn">Sign In</button>
+            <button class="lp-btn-register" data-open-modal="modal-register" id="nav-register-btn">Get Started Free</button>
+          </div>
+
+          <!-- Mobile Hamburger -->
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">
+            <i data-lucide="menu" style="width:20px;height:20px;"></i>
+          </button>
+        </div>
+      </nav>
+
+      <!-- ── MOBILE NAV OVERLAY ── -->
+      <div class="mobile-nav" id="mobile-nav" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+        <button class="mobile-nav-close" id="mobile-menu-close" aria-label="Close menu">&times;</button>
+        <a href="#lp-features" class="mobile-nav-link">Features</a>
+        <a href="#lp-how" class="mobile-nav-link">How It Works</a>
+        <a href="#lp-product" class="mobile-nav-link">Product</a>
+        <a href="#lp-pricing" class="mobile-nav-link">Pricing</a>
+        <div class="mobile-nav-divider"></div>
+        <button class="lp-btn-login" data-open-modal="modal-login" style="width:100%;text-align:center;">Sign In</button>
+        <button class="lp-btn-register" data-open-modal="modal-register" style="width:100%;text-align:center;">Get Started Free</button>
+      </div>
+
+      <!-- ── HERO SECTION ── -->
+      <section class="lp-hero" id="lp-hero">
+        <!-- Background Orbs -->
+        <div class="hero-bg-orbs" aria-hidden="true">
+          <div class="hero-orb hero-orb-1"></div>
+          <div class="hero-orb hero-orb-2"></div>
+          <div class="hero-orb hero-orb-3"></div>
+        </div>
+
+        <div class="lp-container">
+          <!-- Badge -->
+          <div class="lp-hero-badge animate-fade-in">
+            <span class="badge-dot"></span>
+            <span>Redrob AI Hiring Hackathon &nbsp;·&nbsp; Evidence-Driven Intelligence</span>
+            <span class="badge-arrow">↗</span>
+          </div>
+
+          <!-- Headline -->
+          <h1 class="lp-hero-title">
+            Stop Ranking Resumes.<br>
+            <span class="highlight">Start Predicting</span> Hiring Success.
           </h1>
-          <p class="hero-subtitle animate-fade-in-delayed" style="margin: 0; font-size: 16px; line-height: 1.6;">
-            HireMind AI discovers Hidden Gems, predicts True Potential, validates authenticity, and reconnects talent with future opportunities. Move beyond resume filtering.
+
+          <!-- Subheadline -->
+          <p class="lp-hero-subtitle">
+            HireMind's multiplicative <strong>Hire Probability Engine</strong> evaluates candidates across 6 evidence-driven dimensions — surfacing the hires most likely to succeed, not just the ones with the best keywords.
           </p>
-          <div class="hero-actions animate-fade-in-delayed" style="margin-top: 10px;">
-            <a href="#dashboard" class="btn btn-primary glow-btn" id="landing-recruiter-cta">Start Hiring</a>
-            <a href="#dashboard" class="btn btn-outline" id="landing-candidate-cta">Explore Talent Intelligence</a>
-          </div>
-        </div>
 
-        <!-- 3D Floating DNA Card -->
-        <div class="hero-card-perspective animate-fade-in-delayed">
-          <div class="floating-dna-card" id="hero-3d-card">
-            <div class="dna-card-header">
-              <h3><i data-lucide="fingerprint" class="glow-cyan"></i> CANDIDATE DNA</h3>
-              <span class="badge badge-purple" style="font-size: 10px;">V2 ENGINE</span>
+          <!-- CTAs -->
+          <div class="lp-hero-actions">
+            <button class="lp-btn-primary" data-open-modal="modal-register" id="hero-cta-primary">
+              <i data-lucide="zap" style="width:16px;height:16px;"></i>
+              Start Hiring Smarter
+            </button>
+            <a href="#dashboard" class="lp-btn-secondary-hero" id="hero-cta-demo">
+              <i data-lucide="play-circle" style="width:16px;height:16px;"></i>
+              Live Demo →
+            </a>
+          </div>
+
+          <!-- Dashboard Preview Mock -->
+          <div class="lp-hero-preview">
+            <div class="preview-card">
+              <!-- Browser chrome -->
+              <div class="preview-topbar">
+                <div class="preview-dots">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-yellow"></span>
+                  <span class="dot dot-green"></span>
+                </div>
+                <span class="preview-url">hiremind.ai/recruiter/dashboard</span>
+                <div class="preview-status-badge"><span class="dot dot-green" style="width:6px;height:6px;"></span> Live</div>
+              </div>
+
+              <!-- Metrics Row -->
+              <div class="preview-metric-row">
+                <div class="preview-metric">
+                  <div class="pm-value" style="color:#6366f1;">94.2%</div>
+                  <div class="pm-label">Avg Match Accuracy</div>
+                </div>
+                <div class="preview-metric">
+                  <div class="pm-value" style="color:#06b6d4;">287</div>
+                  <div class="pm-label">Candidates Ranked</div>
+                </div>
+                <div class="preview-metric">
+                  <div class="pm-value" style="color:#10b981;">3x</div>
+                  <div class="pm-label">Faster Shortlisting</div>
+                </div>
+                <div class="preview-metric">
+                  <div class="pm-value" style="color:#a855f7;">12</div>
+                  <div class="pm-label">Hidden Gems Found</div>
+                </div>
+              </div>
+
+              <!-- Candidate Rows -->
+              <div class="preview-candidate-row">
+                <div class="preview-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7);">PS</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Priya Sharma</div>
+                  <div class="preview-score-bar"><div class="preview-score-fill" data-pct="93" style="width:93%;"></div></div>
+                </div>
+                <div class="preview-prob-badge">93% ✦</div>
+              </div>
+              <div class="preview-candidate-row">
+                <div class="preview-avatar" style="background:linear-gradient(135deg,#06b6d4,#6366f1);">RK</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Rohan Kumar</div>
+                  <div class="preview-score-bar"><div class="preview-score-fill" data-pct="87" style="width:87%;"></div></div>
+                </div>
+                <div class="preview-prob-badge" style="color:#06b6d4;background:rgba(6,182,212,0.1);">87%</div>
+              </div>
+              <div class="preview-candidate-row">
+                <div class="preview-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4);">AM</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Ananya Mehta <span style="font-size:10px;color:#10b981;margin-left:4px;">💎 Hidden Gem</span></div>
+                  <div class="preview-score-bar"><div class="preview-score-fill" data-pct="81" style="width:81%;background:linear-gradient(90deg,#10b981,#06b6d4);"></div></div>
+                </div>
+                <div class="preview-prob-badge" style="color:#10b981;background:rgba(16,185,129,0.1);">81%</div>
+              </div>
+
+              <!-- AI insight row -->
+              <div class="preview-ai-insight">
+                <i data-lucide="brain-circuit" style="width:14px;height:14px;color:#6366f1;"></i>
+                <span>HireMind AI: Priya's OSS contribution velocity ↑ 340% this quarter — strong intent signal detected</span>
+              </div>
             </div>
-            <div class="dna-card-body">
-              <div class="dna-stat-row">
-                <span class="dna-stat-label"><i data-lucide="gem" class="text-purple"></i> Hidden Gem Score</span>
-                <span class="dna-stat-value text-purple">94%</span>
-              </div>
-              <div class="dna-stat-row">
-                <span class="dna-stat-label"><i data-lucide="compass" class="text-cyan"></i> Intent Score</span>
-                <span class="dna-stat-value text-cyan">96%</span>
-              </div>
-              <div class="dna-stat-row">
-                <span class="dna-stat-label"><i data-lucide="trending-up" class="text-blue"></i> Growth Potential</span>
-                <span class="dna-stat-value text-blue">95%</span>
-              </div>
-              <div class="dna-stat-row">
-                <span class="dna-stat-label"><i data-lucide="layers" class="text-green"></i> Skill Match</span>
-                <span class="dna-stat-value text-green">Vue.js → React (91%)</span>
-              </div>
-              <div class="dna-stat-row" style="border: none;">
-                <span class="dna-stat-label"><i data-lucide="eye" class="text-orange"></i> Future Role</span>
-                <span class="dna-stat-value text-orange">Full Stack Architect</span>
-              </div>
-            </div>
-            <div class="dna-card-footer">
-              Predicted Arc: Evolving into <strong>Full Stack Architect</strong> within 2 years.
-            </div>
+          </div>
+          <!-- End preview -->
+        </div>
+        <!-- Scroll hint -->
+        <div class="hero-scroll-hint" aria-hidden="true">
+          <span>Scroll to explore</span>
+          <div class="scroll-arrow"></div>
+        </div>
+      </section>
+
+      <!-- ── TRUST MARQUEE ── -->
+      <div class="lp-trust" id="lp-trust">
+        <div class="lp-trust-label">TRUSTED BY MODERN HIRING TEAMS</div>
+        <div class="marquee-wrapper">
+          <div class="marquee-track">
+            <span class="marquee-logo">Google</span>
+            <span class="marquee-logo">Microsoft</span>
+            <span class="marquee-logo">Razorpay</span>
+            <span class="marquee-logo">CRED</span>
+            <span class="marquee-logo">Zerodha</span>
+            <span class="marquee-logo">Swiggy</span>
+            <span class="marquee-logo">Meesho</span>
+            <span class="marquee-logo">PhonePe</span>
+            <span class="marquee-logo">Groww</span>
+            <span class="marquee-logo">Ola</span>
+            <span class="marquee-logo">Nykaa</span>
+            <span class="marquee-logo">Flipkart</span>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 1: The Problem (ATS vs. HireMind) -->
-      <div class="landing-section">
-        <div class="section-header">
-          <span class="tag badge-purple" style="margin-bottom: 8px;">The Structural Pitfalls</span>
-          <h2>Traditional ATS vs. Talent Intelligence</h2>
-          <p>Why modern recruiting pipelines fail and how HireMind V2 corrects the course.</p>
-        </div>
-
-        <div class="comparison-grid">
-          <!-- Traditional ATS Column -->
-          <div class="comparison-box traditional">
-            <h3 class="text-orange"><i data-lucide="x-circle"></i> Outdated Resume Filter</h3>
-            <ul class="comparison-list">
-              <li>
-                <i data-lucide="ban" class="text-orange"></i>
-                <div>
-                  <strong>Keyword Matching:</strong> Rejects candidate if "AWS" is missing, ignoring deep transferable skills in Google Cloud or Azure.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="alert-circle" class="text-orange"></i>
-                <div>
-                  <strong>Resume Filtering:</strong> Discards non-traditional backgrounds, losing self-taught geniuses and fast-learners.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="user-minus" class="text-orange"></i>
-                <div>
-                  <strong>Hidden Talent Loss:</strong> Focuses on past credentials instead of predicting the candidate's learning rate and trajectory.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="ghost" class="text-orange"></i>
-                <div>
-                  <strong>Candidate Ghosting:</strong> Once rejected, the candidate is discarded into a database graveyard and never contacted again.
-                </div>
-              </li>
-            </ul>
-          </div>
-
-          <!-- HireMind Column -->
-          <div class="comparison-box hiremind">
-            <h3 class="text-cyan"><i data-lucide="check-circle-2"></i> HireMind Talent Ecosystem</h3>
-            <ul class="comparison-list">
-              <li>
-                <i data-lucide="check" class="text-cyan"></i>
-                <div>
-                  <strong>Cognitive Competency Maps:</strong> Mapped 34 skill adjacencies, understanding Vue.js equates React and GCP equals AWS.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="check" class="text-cyan"></i>
-                <div>
-                  <strong>True Potential Engine:</strong> Predicts trajectory, promotion readiness, and technical evolution over a 24-month horizon.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="check" class="text-cyan"></i>
-                <div>
-                  <strong>Intent Analysis:</strong> Checks GitHub commits, hackathons, and certifications to score domain commitment.
-                </div>
-              </li>
-              <li>
-                <i data-lucide="check" class="text-cyan"></i>
-                <div>
-                  <strong>Future Opportunity Engine:</strong> Auto-rematches rejected talent to future open roles. No talent left behind.
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 2: The HireMind Difference -->
-      <div class="landing-section">
-        <div class="section-header">
-          <span class="tag badge-cyan" style="margin-bottom: 8px;">The Core Pillars</span>
-          <h2>Ecosystem Innovation Modules</h2>
-          <p>Ten interconnected AI subsystems working in unison to uncover, predict, and nurture potential.</p>
-        </div>
-
-        <div class="difference-grid">
-          <!-- Card 1 -->
-          <div class="diff-card">
-            <i data-lucide="gem" class="text-purple"></i>
-            <h4>Hidden Gems</h4>
-            <p>Recovers top performers whose resumes lack precise keywords by discovering adjacent technical competencies.</p>
-          </div>
-          <!-- Card 2 -->
-          <div class="diff-card">
-            <i data-lucide="trending-up" class="text-blue"></i>
-            <h4>True Potential</h4>
-            <p>Predicts expected career acceleration paths, promotion readiness, and expected skill acquisition rates.</p>
-          </div>
-          <!-- Card 3 -->
-          <div class="diff-card">
-            <i data-lucide="compass" class="text-cyan"></i>
-            <h4>Intent Analysis</h4>
-            <p>Leverages learning records, open-source activity, and hackathon presence to measure long-term commitment.</p>
-          </div>
-          <!-- Card 4 -->
-          <div class="diff-card">
-            <i data-lucide="fingerprint" class="text-green"></i>
-            <h4>Candidate DNA</h4>
-            <p>Charts a multi-dimensional capability index including technical strength, agility, collaboration, and innovation.</p>
-          </div>
-          <!-- Card 5 -->
-          <div class="diff-card">
-            <i data-lucide="git-branch" class="text-orange"></i>
-            <h4>Future Opportunity</h4>
-            <p>Ensures 'No Talent Left Behind' by continually checking candidate DNA against subsequent job openings.</p>
-          </div>
-          <!-- Card 6 -->
-          <div class="diff-card">
-            <i data-lucide="rotate-ccw" class="text-purple"></i>
-            <h4>Second Chance AI</h4>
-            <p>Equips unsuccessful applicants with a custom learning roadmap and timeline, tracking improvements automatically.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 3: Live Product Demo -->
-      <div class="landing-section">
-        <div class="section-header">
-          <span class="tag badge-purple" style="margin-bottom: 8px;">Interactive Preview</span>
-          <h2>Watch AI Sourcing in Real Time</h2>
-          <p>Upload files or run the simulation below to witness Candidate DNA extraction and mapping.</p>
-        </div>
-
-        <div class="demo-window">
-          <div class="demo-header">
-            <div class="window-dots">
-              <span class="window-dot red"></span>
-              <span class="window-dot yellow"></span>
-              <span class="window-dot green"></span>
+      <!-- ── METRICS SECTION ── -->
+      <section class="lp-metrics" id="lp-metrics">
+        <div class="lp-container">
+          <div class="metrics-grid">
+            <div class="metric-card reveal">
+              <div class="metric-icon"><i data-lucide="users" style="width:22px;height:22px;"></i></div>
+              <div class="metric-number" data-target="100" data-suffix="K+">0</div>
+              <div class="metric-label">Candidate Profiles Analyzed</div>
             </div>
-            <span style="font-size: 11px; color: var(--text-muted);">HIREMIND_INTELLIGENCE_SIMULATOR</span>
-            <span style="width: 30px;"></span>
+            <div class="metric-card reveal reveal-delay-1">
+              <div class="metric-icon" style="background:rgba(6,182,212,0.15);color:#06b6d4;"><i data-lucide="target" style="width:22px;height:22px;"></i></div>
+              <div class="metric-number" data-target="95" data-suffix="%" style="background:linear-gradient(135deg,#06b6d4,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+              <div class="metric-label">Prediction Accuracy</div>
+            </div>
+            <div class="metric-card reveal reveal-delay-2">
+              <div class="metric-icon" style="background:rgba(168,85,247,0.15);color:#a855f7;"><i data-lucide="zap" style="width:22px;height:22px;"></i></div>
+              <div class="metric-number" data-target="85" data-suffix="%" style="background:linear-gradient(135deg,#a855f7,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+              <div class="metric-label">Faster Shortlisting</div>
+            </div>
+            <div class="metric-card reveal reveal-delay-3">
+              <div class="metric-icon" style="background:rgba(16,185,129,0.15);color:#10b981;"><i data-lucide="trending-down" style="width:22px;height:22px;"></i></div>
+              <div class="metric-number" data-target="40" data-suffix="%" style="background:linear-gradient(135deg,#10b981,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+              <div class="metric-label">Reduction in Bad Hires</div>
+            </div>
           </div>
-          
-          <div class="demo-body-split">
-            <!-- Left panel -->
-            <div class="demo-left-panel">
-              <div class="demo-upload-wrapper">
-                <div class="demo-upload-box active" id="demo-resume-box">
-                  <i data-lucide="file-text" class="text-cyan"></i>
-                  <h5>Helena_Resume.pdf</h5>
-                  <span id="demo-resume-status">Vue.js, GCP Cloud</span>
-                </div>
-                <div class="demo-upload-box active" id="demo-jd-box">
-                  <i data-lucide="briefcase" class="text-purple"></i>
-                  <h5>Senior_Frontend_Architect</h5>
-                  <span id="demo-jd-status">React, AWS Cloud Required</span>
-                </div>
+        </div>
+      </section>
+
+      <!-- ── FEATURES SECTION ── -->
+      <section class="lp-features" id="lp-features">
+        <div class="lp-container">
+          <div class="lp-section-header reveal">
+            <div class="lp-section-eyebrow">CORE CAPABILITIES</div>
+            <h2 class="lp-section-title">Intelligence Built for <span class="highlight">Real Hiring</span></h2>
+            <p class="lp-section-subtitle">Not another ATS. HireMind's 6-dimensional Hire Probability Engine thinks like a senior recruiter, not a search engine.</p>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-card reveal">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(99,102,241,0.1));">
+                <i data-lucide="brain-circuit" style="width:22px;height:22px;color:#6366f1;"></i>
               </div>
-
-              <!-- Scanning animation bar -->
-              <div class="scanning-bar-anim" id="demo-scan-line" style="display: block; margin: 15px 0;"></div>
-
-              <div class="pipeline-status-indicator">
-                <div class="pipeline-step-item active" id="demo-step-1">
-                  <i data-lucide="check-circle" class="icon-tiny"></i>
-                  <span>Step 1: Parse resume keywords and technical frameworks</span>
-                </div>
-                <div class="pipeline-step-item" id="demo-step-2">
-                  <i data-lucide="loader" class="icon-tiny animate-spin"></i>
-                  <span>Step 2: Map skill adjacencies (Vue.js -> React)</span>
-                </div>
-                <div class="pipeline-step-item" id="demo-step-3">
-                  <i data-lucide="circle" class="icon-tiny"></i>
-                  <span>Step 3: Score growth potential & intent metrics</span>
-                </div>
-              </div>
-
-              <button class="btn btn-primary" id="demo-trigger-btn" style="width: 100%;">Run AI Intelligence Scan</button>
+              <h3 class="feature-card-title">Hire Probability Engine</h3>
+              <p class="feature-card-desc">Multiplicative scoring across P(Qualified) × P(Available) × P(Engageable) × P(Legitimate) × P(Growth) × P(Scrappiness). If any dimension is zero, the score is zero.</p>
+              <span class="feature-tag">Core AI</span>
             </div>
 
-            <!-- Right panel -->
-            <div class="demo-right-panel" id="demo-result-panel">
-              <div style="text-align: center; color: var(--text-muted); padding: 20px;" id="demo-empty-result">
-                <i data-lucide="cpu" class="icon-large text-dark animate-pulse" style="margin-bottom: 12px; width: 48px; height: 48px;"></i>
-                <p style="font-size: 13px;">AI Analysis Engine idle. Press the button on the left to start the simulation.</p>
+            <div class="feature-card reveal reveal-delay-1">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(6,182,212,0.1));">
+                <i data-lucide="gem" style="width:22px;height:22px;color:#06b6d4;"></i>
               </div>
+              <h3 class="feature-card-title">Hidden Gem Detection</h3>
+              <p class="feature-card-desc">Surfaces undervalued candidates with high growth trajectories, strong OSS contributions, or upward career momentum that traditional ATS systems miss entirely.</p>
+              <span class="feature-tag" style="color:#06b6d4;border-color:rgba(6,182,212,0.3);">Discovery</span>
+            </div>
 
-              <!-- Output widget hidden initially -->
-              <div class="demo-output-card hidden" id="demo-actual-result">
-                <div class="demo-output-header">
-                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="Helena" class="demo-output-avatar">
-                  <div>
-                    <h5 style="margin:0; font-size:14px;">Helena Rostova</h5>
-                    <span style="font-size:10px; color:var(--text-muted);">UI Dev • 6 Yrs Exp</span>
+            <div class="feature-card reveal reveal-delay-2">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));">
+                <i data-lucide="shield-check" style="width:22px;height:22px;color:#a855f7;"></i>
+              </div>
+              <h3 class="feature-card-title">Resume Legitimacy Scan</h3>
+              <p class="feature-card-desc">Detects credential inflation, implausible timeline jumps, and fake project claims. A honeypot candidate with P(Legitimate)=0.1 automatically collapses to near-zero.</p>
+              <span class="feature-tag" style="color:#a855f7;border-color:rgba(168,85,247,0.3);">Anti-Fraud</span>
+            </div>
+
+            <div class="feature-card reveal">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.1));">
+                <i data-lucide="trending-up" style="width:22px;height:22px;color:#10b981;"></i>
+              </div>
+              <h3 class="feature-card-title">Career Trajectory Mapping</h3>
+              <p class="feature-card-desc">Projects a candidate's growth arc 2 years forward using role progression, skill velocity, and market demand signals. Future leaders identified before they peak.</p>
+              <span class="feature-tag" style="color:#10b981;border-color:rgba(16,185,129,0.3);">Forecasting</span>
+            </div>
+
+            <div class="feature-card reveal reveal-delay-1">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(251,146,60,0.2),rgba(251,146,60,0.1));">
+                <i data-lucide="activity" style="width:22px;height:22px;color:#fb923c;"></i>
+              </div>
+              <h3 class="feature-card-title">Behavioral Signal Analysis</h3>
+              <p class="feature-card-desc">GitHub commit frequency, LinkedIn activity velocity, portfolio freshness, open-source contributions — all converted into engagement probability scores.</p>
+              <span class="feature-tag" style="color:#fb923c;border-color:rgba(251,146,60,0.3);">Signals</span>
+            </div>
+
+            <div class="feature-card reveal reveal-delay-2">
+              <div class="feature-icon" style="background:linear-gradient(135deg,rgba(244,63,94,0.2),rgba(244,63,94,0.1));">
+                <i data-lucide="dna" style="width:22px;height:22px;color:#f43f5e;"></i>
+              </div>
+              <h3 class="feature-card-title">Candidate DNA Analysis</h3>
+              <p class="feature-card-desc">Radar visualization of all 6 hire probability dimensions with strengths, risks, and a recruiter-grade natural language explanation of every score decision.</p>
+              <span class="feature-tag" style="color:#f43f5e;border-color:rgba(244,63,94,0.3);">Explainable AI</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── HOW IT WORKS ── -->
+      <section class="lp-how" id="lp-how">
+        <div class="lp-container">
+          <div class="lp-section-header reveal">
+            <div class="lp-section-eyebrow">THE ENGINE</div>
+            <h2 class="lp-section-title">From Job Description to <span class="highlight">Ranked Intelligence</span></h2>
+            <p class="lp-section-subtitle">Five steps that transform a raw JD into a confidence-ranked shortlist, powered by evidence — not keywords.</p>
+          </div>
+
+          <div class="how-steps">
+            <div class="how-step reveal">
+              <div class="how-step-num">01</div>
+              <div class="how-step-content">
+                <h3 class="how-step-title">Paste Your Job Description</h3>
+                <p class="how-step-desc">Upload or paste any JD — HireMind extracts required skills, experience thresholds, role context, and seniority signals automatically using its AI parser.</p>
+              </div>
+            </div>
+            <div class="how-step reveal">
+              <div class="how-step-num">02</div>
+              <div class="how-step-content">
+                <h3 class="how-step-title">Candidate Profiles Ingested</h3>
+                <p class="how-step-desc">Import from LinkedIn, CSV, or ATS. Each candidate profile is enriched with behavioral signals, activity timestamps, and public credibility markers.</p>
+              </div>
+            </div>
+            <div class="how-step reveal">
+              <div class="how-step-num">03</div>
+              <div class="how-step-content">
+                <h3 class="how-step-title">6-Dimension Scoring Engine Runs</h3>
+                <p class="how-step-desc">HireMind calculates P(Qualified) × P(Available) × P(Engageable) × P(Legitimate) × P(Growth) × P(Scrappiness) for every candidate. Multiplicative — no dimension can be gamed.</p>
+              </div>
+            </div>
+            <div class="how-step reveal">
+              <div class="how-step-num">04</div>
+              <div class="how-step-content">
+                <h3 class="how-step-title">Ranked Intelligence Report Generated</h3>
+                <p class="how-step-desc">Every candidate receives a final Hire Probability score, a DNA radar chart, a natural language recruiter brief, and a Hidden Gem flag if applicable.</p>
+              </div>
+            </div>
+            <div class="how-step reveal">
+              <div class="how-step-num">05</div>
+              <div class="how-step-content">
+                <h3 class="how-step-title">Recruiter Acts with Confidence</h3>
+                <p class="how-step-desc">Your shortlist is evidence-backed, explainable to hiring managers, and bias-aware. Reach out to the right candidates at the right time — with AI rationale behind every decision.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PRODUCT SHOWCASE ── -->
+      <section class="lp-product" id="lp-product">
+        <div class="lp-container">
+          <div class="lp-section-header reveal">
+            <div class="lp-section-eyebrow">PRODUCT TOUR</div>
+            <h2 class="lp-section-title">Built for <span class="highlight">Both Sides</span> of Hiring</h2>
+          </div>
+
+          <div class="product-tabs">
+            <button class="product-tab active" data-tab="recruiter" id="tab-recruiter">For Recruiters</button>
+            <button class="product-tab" data-tab="candidate" id="tab-candidate">For Candidates</button>
+          </div>
+
+          <div class="product-panel active" id="panel-recruiter">
+            <div class="product-showcase">
+              <div class="product-text-side">
+                <h3 class="product-panel-title">The Recruiter Intelligence Suite</h3>
+                <p class="product-panel-desc">From JD ingestion to ranked shortlist — every tool a modern recruiter needs to make confident, evidence-based hiring decisions.</p>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon"><i data-lucide="layout-dashboard" style="width:18px;height:18px;color:#6366f1;"></i></div>
+                  <div><strong>Candidate Dashboard</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">Real-time ranked list with Hire Probability scores, DNA badges, and one-click explainable AI.</span></div>
+                </div>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon" style="background:rgba(6,182,212,0.15);"><i data-lucide="gem" style="width:18px;height:18px;color:#06b6d4;"></i></div>
+                  <div><strong>Hidden Gems View</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">Automatically surfaces underrated candidates that keyword-based tools miss.</span></div>
+                </div>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon" style="background:rgba(168,85,247,0.15);"><i data-lucide="git-fork" style="width:18px;height:18px;color:#a855f7;"></i></div>
+                  <div><strong>Future Talent Pipeline</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">Track candidates not ready today but primed for roles 6–18 months from now.</span></div>
+                </div>
+                <button class="lp-btn-primary" style="margin-top:8px;" data-open-modal="modal-register">Start Free Trial →</button>
+              </div>
+              <div class="product-visual-side">
+                <div class="product-mock-card">
+                  <div style="font-size:11px;color:var(--lp-text-muted);margin-bottom:12px;font-weight:600;letter-spacing:1px;">HIRE PROBABILITY ENGINE</div>
+                  <div class="product-mock-row"><span>P(Qualified)</span><div class="mock-bar"><div class="mock-fill" style="width:92%;background:linear-gradient(90deg,#6366f1,#a855f7);"></div></div><span style="color:#6366f1;font-weight:700;">0.92</span></div>
+                  <div class="product-mock-row"><span>P(Available)</span><div class="mock-bar"><div class="mock-fill" style="width:75%;background:linear-gradient(90deg,#06b6d4,#6366f1);"></div></div><span style="color:#06b6d4;font-weight:700;">0.75</span></div>
+                  <div class="product-mock-row"><span>P(Engageable)</span><div class="mock-bar"><div class="mock-fill" style="width:88%;background:linear-gradient(90deg,#10b981,#06b6d4);"></div></div><span style="color:#10b981;font-weight:700;">0.88</span></div>
+                  <div class="product-mock-row"><span>P(Legitimate)</span><div class="mock-bar"><div class="mock-fill" style="width:95%;background:linear-gradient(90deg,#f59e0b,#10b981);"></div></div><span style="color:#f59e0b;font-weight:700;">0.95</span></div>
+                  <div class="product-mock-row"><span>P(Growth)</span><div class="mock-bar"><div class="mock-fill" style="width:83%;background:linear-gradient(90deg,#a855f7,#6366f1);"></div></div><span style="color:#a855f7;font-weight:700;">0.83</span></div>
+                  <div class="product-mock-row"><span>P(Scrappiness)</span><div class="mock-bar"><div class="mock-fill" style="width:70%;background:linear-gradient(90deg,#f43f5e,#a855f7);"></div></div><span style="color:#f43f5e;font-weight:700;">0.70</span></div>
+                  <div class="product-final-score">Final Score: <strong>93.2%</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-panel" id="panel-candidate">
+            <div class="product-showcase">
+              <div class="product-text-side">
+                <h3 class="product-panel-title">The Candidate Career Dashboard</h3>
+                <p class="product-panel-desc">Understand your hire probability before you apply. See exactly how recruiters evaluate your profile and what to improve.</p>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon"><i data-lucide="user-circle" style="width:18px;height:18px;color:#6366f1;"></i></div>
+                  <div><strong>Profile Strength Score</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">See your hire probability from a recruiter's lens — powered by the same AI engine.</span></div>
+                </div>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon" style="background:rgba(6,182,212,0.15);"><i data-lucide="lightbulb" style="width:18px;height:18px;color:#06b6d4;"></i></div>
+                  <div><strong>AI Career Coach</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">Personalized improvement tips to boost your probability scores across all 6 dimensions.</span></div>
+                </div>
+                <div class="product-feature-row">
+                  <div class="product-feature-icon" style="background:rgba(16,185,129,0.15);"><i data-lucide="briefcase" style="width:18px;height:18px;color:#10b981;"></i></div>
+                  <div><strong>Matched Opportunities</strong><br><span style="font-size:13px;color:var(--lp-text-muted);">View jobs where your current profile matches 80%+ — curated by real probability scores.</span></div>
+                </div>
+                <button class="lp-btn-primary" style="margin-top:8px;background:linear-gradient(135deg,#06b6d4,#6366f1);" data-open-modal="modal-register">Create Free Profile →</button>
+              </div>
+              <div class="product-visual-side">
+                <div class="product-mock-card">
+                  <div style="font-size:11px;color:var(--lp-text-muted);margin-bottom:12px;font-weight:600;letter-spacing:1px;">YOUR HIRE PROBABILITY</div>
+                  <div style="text-align:center;padding:20px 0;">
+                    <div style="font-size:56px;font-weight:700;font-family:'Space Grotesk';background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">87%</div>
+                    <div style="font-size:13px;color:var(--lp-text-muted);margin-top:4px;">For Senior Frontend Engineer roles</div>
                   </div>
-                  <span class="badge badge-purple" style="margin-left:auto; font-size:9px;">HIDDEN GEM</span>
-                </div>
-                
-                <div class="demo-gauge-wrap">
-                  <svg width="120" height="120" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.04)" stroke-width="8" fill="none" />
-                    <circle cx="50" cy="50" r="40" stroke="var(--cyan)" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="17" />
-                  </svg>
-                  <div class="demo-gauge-num">93%</div>
-                </div>
-
-                <div style="font-size: 11px; line-height: 1.4; color: var(--text-muted); background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
-                  <strong>AI Match Rationale:</strong> Expert in Vue.js and GCP Cloud. Maps directly to requested React & AWS architect layers via cognitive transfer.
+                  <div style="font-size:12px;color:var(--lp-text-muted);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;">
+                    💡 <strong style="color:#10b981;">AI Insight:</strong> Boost P(Engageable) by adding 2+ recent open-source contributions to your GitHub. Estimated +6% hire probability.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- ── PRICING SECTION ── -->
+      <section class="lp-pricing" id="lp-pricing">
+        <div class="lp-container">
+          <div class="lp-section-header reveal">
+            <div class="lp-section-eyebrow">PRICING</div>
+            <h2 class="lp-section-title">Simple, <span class="highlight">Transparent</span> Pricing</h2>
+            <p class="lp-section-subtitle">Start free. Scale as you hire. No hidden fees, no seat minimums.</p>
+          </div>
+          <div class="pricing-grid">
+            <div class="pricing-card reveal">
+              <div class="pricing-plan-name">Starter</div>
+              <div class="pricing-price"><span class="price-currency">₹</span><span class="price-amount">0</span><span class="price-period">/mo</span></div>
+              <div class="pricing-desc">Perfect for independent recruiters and small agencies getting started with AI-driven hiring.</div>
+              <ul class="pricing-features">
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Up to 50 candidate analyses/mo</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Hire Probability scoring</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Hidden Gem detection</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Basic DNA radar chart</li>
+                <li><i data-lucide="x" style="width:14px;height:14px;color:var(--lp-text-subtle);"></i> <span style="color:var(--lp-text-subtle);">Bulk import</span></li>
+                <li><i data-lucide="x" style="width:14px;height:14px;color:var(--lp-text-subtle);"></i> <span style="color:var(--lp-text-subtle);">API access</span></li>
+              </ul>
+              <button class="pricing-cta pricing-cta-secondary" data-open-modal="modal-register">Get Started Free</button>
+            </div>
+
+            <div class="pricing-card pricing-card-featured reveal reveal-delay-1">
+              <div class="pricing-badge">Most Popular</div>
+              <div class="pricing-plan-name">Growth</div>
+              <div class="pricing-price"><span class="price-currency">₹</span><span class="price-amount">4,999</span><span class="price-period">/mo</span></div>
+              <div class="pricing-desc">For growing teams that need full intelligence across the hiring funnel.</div>
+              <ul class="pricing-features">
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Unlimited candidate analyses</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Full 6D Hire Probability Engine</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Bulk CSV / ATS import</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Advanced DNA reports</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Future talent pipeline</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Priority support</li>
+              </ul>
+              <button class="pricing-cta pricing-cta-primary" data-open-modal="modal-register">Start 14-Day Trial →</button>
+            </div>
+
+            <div class="pricing-card reveal reveal-delay-2">
+              <div class="pricing-plan-name">Enterprise</div>
+              <div class="pricing-price" style="font-size:32px;">Custom</div>
+              <div class="pricing-desc">For large enterprises requiring custom integrations, SSO, and dedicated success teams.</div>
+              <ul class="pricing-features">
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Everything in Growth</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> REST API access</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> SSO / SAML integration</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Custom model fine-tuning</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> Dedicated CSM</li>
+                <li><i data-lucide="check" style="width:14px;height:14px;color:#10b981;"></i> SLA guarantee</li>
+              </ul>
+              <button class="pricing-cta pricing-cta-secondary">Contact Sales</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CTA SECTION ── -->
+      <section class="lp-cta" id="lp-cta">
+        <div class="lp-container">
+          <div class="cta-box reveal">
+            <div class="cta-orb" aria-hidden="true"></div>
+            <div class="lp-section-eyebrow" style="justify-content:center;">JOIN THE FUTURE OF HIRING</div>
+            <h2 class="cta-title">Ready to Hire with <span class="highlight">Confidence?</span></h2>
+            <p class="cta-subtitle">Start for free. No credit card required. See your first Hire Probability report in under 2 minutes.</p>
+            <div class="cta-actions">
+              <button class="lp-btn-primary" data-open-modal="modal-register" id="cta-register-btn">
+                <i data-lucide="rocket" style="width:16px;height:16px;"></i>
+                Get Started Free
+              </button>
+              <a href="#dashboard" class="lp-btn-secondary-hero" id="cta-demo-btn">
+                <i data-lucide="monitor" style="width:16px;height:16px;"></i>
+                Live Demo
+              </a>
+            </div>
+            <div class="cta-trust-row">
+              <span>✓ Free forever plan</span>
+              <span>✓ No credit card</span>
+              <span>✓ Setup in 2 min</span>
+              <span>✓ GDPR compliant</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── FOOTER ── -->
+      <footer class="lp-footer" id="lp-footer" role="contentinfo">
+        <div class="lp-container">
+          <div class="footer-grid">
+            <div class="footer-brand">
+              <div class="lp-nav-logo">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#footer-logo-g)"/><path d="M7 19l4-8 4 4 4-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="footer-logo-g" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
+                <span class="lp-logo-text">HireMind <span class="lp-logo-accent">AI</span></span>
+              </div>
+              <p class="footer-tagline">The world's first Evidence-Driven Hire Probability Engine. Built for modern recruiters who value signal over noise.</p>
+              <div class="footer-social">
+                <a href="#" class="social-btn" aria-label="Twitter"><i data-lucide="twitter" style="width:14px;height:14px;"></i></a>
+                <a href="#" class="social-btn" aria-label="LinkedIn"><i data-lucide="linkedin" style="width:14px;height:14px;"></i></a>
+                <a href="https://github.com/TarunMalve/HireMind_INDIA.RUNS" class="social-btn" aria-label="GitHub" target="_blank" rel="noopener"><i data-lucide="github" style="width:14px;height:14px;"></i></a>
+              </div>
+            </div>
+            <div class="footer-col">
+              <div class="footer-col-title">Product</div>
+              <a href="#lp-features" class="footer-link">Features</a>
+              <a href="#lp-how" class="footer-link">How It Works</a>
+              <a href="#lp-pricing" class="footer-link">Pricing</a>
+              <a href="#dashboard" class="footer-link">Live Demo</a>
+              <a href="#" class="footer-link">Changelog</a>
+            </div>
+            <div class="footer-col">
+              <div class="footer-col-title">Recruiters</div>
+              <a href="#lp-product" class="footer-link">Recruiter Dashboard</a>
+              <a href="#" class="footer-link">Hire Probability Engine</a>
+              <a href="#" class="footer-link">Hidden Gem Detection</a>
+              <a href="#" class="footer-link">Bulk Analysis</a>
+              <a href="#" class="footer-link">API Access</a>
+            </div>
+            <div class="footer-col">
+              <div class="footer-col-title">Candidates</div>
+              <a href="#" class="footer-link">Profile Score</a>
+              <a href="#" class="footer-link">AI Career Coach</a>
+              <a href="#" class="footer-link">Job Matches</a>
+              <a href="#" class="footer-link">Resume Tips</a>
+            </div>
+            <div class="footer-col">
+              <div class="footer-col-title">Company</div>
+              <a href="#" class="footer-link">About</a>
+              <a href="#" class="footer-link">Blog</a>
+              <a href="#" class="footer-link">Careers</a>
+              <a href="#" class="footer-link">Privacy Policy</a>
+              <a href="#" class="footer-link">Terms of Service</a>
+            </div>
+          </div>
+          <div class="footer-divider"></div>
+          <div class="footer-bottom">
+            <span>© 2024 HireMind AI. Built with ♥ for the Redrob AI Hiring Hackathon.</span>
+            <span>Evidence-Driven. Bias-Aware. Recruiter-Grade.</span>
+          </div>
+        </div>
+      </footer>
+
     </section>
+    <!-- END LANDING VIEW -->
 
     <!-- Dashboard Layout (Sidebar + Main Content Area) -->
     <div id="dashboard-layout" class="layout-hidden">
@@ -1079,5 +1507,7 @@
   <script src="mockData.js"></script>
   <script src="threeBackground.js"></script>
   <script src="app.js"></script>
+  <!-- Landing Page Module -->
+  <script src="landing.js"></script>
 </body>
 </html>
