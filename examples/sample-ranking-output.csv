@@ -1,0 +1,8 @@
+CandidateId,Name,Role,ExperienceYears,HireProbability,VerifiedBadge,IsHiddenGem
+cand-1,Helena Rostova,Senior UI Engineer,6,0.80,Yes,Yes
+cand-2,Marcus Vance,Full Stack Developer,4,0.65,Yes,No
+cand-3,Dr. Kenji Tanaka,Backend Architect,12,0.64,Yes,No
+cand-4,Aisha Patel,Frontend Engineer,3,0.61,No,No
+cand-5,Liam O'Connor,DevOps Engineer,5,0.48,No,No
+cand-6,Elena Rostova,Vue Developer,2,0.54,Yes,Yes
+cand-7,Vikram Sharma,React Developer,5,0.05,No,No

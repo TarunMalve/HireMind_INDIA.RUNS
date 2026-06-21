@@ -1,0 +1,19 @@
+{
+  "candidateId": "cand-1",
+  "name": "Helena Rostova",
+  "email": "helena.rostova@gmail.com",
+  "title": "Senior UI Engineer",
+  "experienceYears": 6,
+  "skills": ["React", "TypeScript", "Vue.js", "CSS3", "Zustand", "GCP", "Webpack"],
+  "pFactors": {
+    "qualified": 0.95,
+    "available": 0.90,
+    "engageable": 0.88,
+    "legitimate": 1.00,
+    "growth": 0.92,
+    "scrappiness": 0.94
+  },
+  "verifiedClaims": true,
+  "recruiterBrief": "Helena has a strong trajectory in UI development, showing high open-source commit velocity and solid experience in adjacent cloud frameworks (GCP vs AWS). Highly engageable.",
+  "isGem": true
+}
