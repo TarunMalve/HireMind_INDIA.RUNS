@@ -1509,6 +1509,68 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ------------------------------------------------------------
+  // DYNAMIC HERO HEADLINE ROTATOR
+  // ------------------------------------------------------------
+  const rotatorHeadlines = [
+    { p1: "Don't Hire Resumes.", p2: "Predict Success." },
+    { p1: "Don't Match Keywords.", p2: "Validate Capabilities." },
+    { p1: "Don't Screen Profiles.", p2: "Forecast Growth." },
+    { p1: "Don't Risk Bad Hires.", p2: "Ensure Perfect Fit." }
+  ];
+
+  let rotatorIndex = 0;
+  let rotatorPaused = false;
+  const headlineEl = document.getElementById("hero-headline");
+  const p1El = document.getElementById("headline-p1");
+  const p2El = document.getElementById("headline-p2");
+
+  if (headlineEl && p1El && p2El) {
+    let lastMouseX = -999;
+    let lastMouseY = -999;
+
+    // Track mouse coordinates globally without automatic resets
+    document.addEventListener("mousemove", (e) => {
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    setInterval(() => {
+      const rect = headlineEl.getBoundingClientRect();
+      
+      // Determine if the last known mouse position is inside the headline bounding box
+      const mouseInside = (
+        lastMouseX >= rect.left &&
+        lastMouseX <= rect.right &&
+        lastMouseY >= rect.top &&
+        lastMouseY <= rect.bottom
+      );
+
+      // Check both coordinate-based hover and native CSS hover states
+      const isHovered = mouseInside || headlineEl.matches(':hover') || p1El.matches(':hover') || p2El.matches(':hover');
+
+      if (isHovered) {
+        return;
+      }
+
+      // Start fade out
+      p1El.classList.add("headline-fade-out");
+      p2El.classList.add("headline-fade-out");
+
+      setTimeout(() => {
+        // Update index and text
+        rotatorIndex = (rotatorIndex + 1) % rotatorHeadlines.length;
+        const nextHeadline = rotatorHeadlines[rotatorIndex];
+        p1El.textContent = nextHeadline.p1;
+        p2El.textContent = nextHeadline.p2;
+
+        // Start fade in
+        p1El.classList.remove("headline-fade-out");
+        p2El.classList.remove("headline-fade-out");
+      }, 450); // matches the transition speed in CSS
+    }, 4500); // changes every 4.5 seconds
+  }
+
   const heroCandidateData = {
     helena: {
       name: "Helena Rostova",
