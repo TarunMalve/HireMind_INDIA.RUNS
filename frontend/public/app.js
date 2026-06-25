@@ -1,1970 +1,1652 @@
-// Main Application Engine for HireMind AI Platform
+// HireMind AI — Main Application Engine (Professional SaaS v3.0)
 
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize Lucide Icons
   lucide.createIcons();
 
-  // Globals
-  let activeJobFilter = "job-1";
-  let activeSort = "score";
-  let showGemsOnly = false;
-  let currentCandidateDnaId = "cand-1";
-  let currentRecCandidateId = "cand-1";
-  let globalSearchQuery = "";
-  let marketFilterTag = null;
-  
-  // V2 Globals
-  let currentPortalMode = "recruiter"; // recruiter or candidate
-  let activeCandidateId = "cand-1"; // Helena Rostova (default user for Candidate view)
+  // ------------------------------------------------------------
+  // GLOBALS & STATE
+  // ------------------------------------------------------------
+  let currentPortalMode = "recruiter"; // recruiter | candidate
+  let activeCandidateId = "cand-1"; // Currently evaluated candidate in Evidence Profile
+  let activeDiscoverJobId = "job-1"; // Sourcing view filter
+  let discoverFilterThreshold = "all"; // all | high | potential
+  let currentJudgeStep = 1;
+  let activeSettingsTab = "general";
+  let activeGrowTab = "high-potential";
+  let searchQuery = "";
+
+  // Quiz state for Candidate Hub
   let quizQuestionIdx = 0;
-  let quizCorrectAnswers = 0;
+  let quizCorrectCount = 0;
+  let quizActiveSkill = "React";
 
-  // Chart References (to prevent canvas reuse issues)
-  let dnaChartInstance = null;
-  let distributionChartInstance = null;
-  let predictionChartInstance = null;
+  // Chart instances to prevent canvas recycling bugs
+  let chartFunnelInstance = null;
+  let chartTimeInstance = null;
+  let chartSourcesInstance = null;
+  let chartAccuracyInstance = null;
 
-  // 1. Hash-based Router
-  const routes = {
-    landing: "landing-view",
-    dashboard: "dashboard-view",
-    candidates: "candidates-view",
-    hiddengems: "hiddengems-view",
-    marketplace: "marketplace-view",
-    pipeline: "pipeline-view",
-    dna: "dna-view",
-    insights: "insights-view",
-    notifications: "notifications-view",
-    recommendation: "recommendation-view",
-    "candidate-dashboard": "candidate-dashboard-view"
+  // Pre-seed candidate Kanban stages in memory since we don't have a backend
+  let candidateStages = {
+    "cand-1": "screening", // Helena
+    "cand-2": "applied",   // Marcus
+    "cand-3": "interview", // Kenji
+    "cand-4": "assessment",// Aisha
+    "cand-5": "offer",     // Liam
+    "cand-6": "hired"      // Elena
+  };
+
+  // ------------------------------------------------------------
+  // TOAST NOTIFICATIONS UTILITY
+  // ------------------------------------------------------------
+  function showToast(message, type = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    let iconName = "check-circle";
+    if (type === "warning") iconName = "alert-triangle";
+    if (type === "error") iconName = "x-circle";
+    
+    toast.innerHTML = `
+      <i data-lucide="${iconName}"></i>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+    lucide.createIcons();
+
+    setTimeout(() => {
+      toast.style.animation = "fadeOut 0.3s ease forwards";
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  // ------------------------------------------------------------
+  // ROUTER (Hash-Based)
+  // ------------------------------------------------------------
+  const routeMap = {
+    "dashboard": "dashboard-view",
+    "discover": "discover-view",
+    "evaluate": "evaluate-view",
+    "pipeline": "pipeline-view",
+    "grow": "grow-view",
+    "analytics": "analytics-view",
+    "candidate-dashboard": "candidate-dashboard-view",
+    "notifications": "notifications-view",
+    "settings": "settings-view"
   };
 
   function handleRouting() {
-    // Sync portal mode with logged in user type if available
-    const loggedInType = localStorage.getItem('hm-user-type');
-    if (loggedInType) {
-      currentPortalMode = loggedInType;
-      // Sync portal switch UI buttons if they exist
-      const recSwitch = document.getElementById("portal-switch-recruiter");
-      const candSwitch = document.getElementById("portal-switch-candidate");
-      const recGroup = document.getElementById("nav-recruiter-group");
-      const candGroup = document.getElementById("nav-candidate-group");
-      
-      if (recSwitch && candSwitch) {
-        if (currentPortalMode === 'candidate') {
-          candSwitch.classList.add("active");
-          recSwitch.classList.remove("active");
-          if (candGroup && recGroup) {
-            candGroup.classList.remove("hidden");
-            recGroup.classList.add("hidden");
-          }
-        } else {
-          recSwitch.classList.add("active");
-          candSwitch.classList.remove("active");
-          if (candGroup && recGroup) {
-            recGroup.classList.remove("hidden");
-            candGroup.classList.add("hidden");
-          }
-        }
-      }
-    }
-
     let hash = window.location.hash.substring(1);
-    if (!hash || hash === "" || hash === "landing") {
-      hash = "landing";
-    }
-
-    // Safeguard route redirects when portal mode changes
-    if (hash === "dashboard" && currentPortalMode === "candidate") {
-      hash = "candidate-dashboard";
-      window.location.hash = "#candidate-dashboard";
+    
+    // Smooth scrolling for landing sections
+    const landingSections = ["problems", "solution", "features", "pricing", "faq"];
+    if (landingSections.includes(hash)) {
+      const landing = document.getElementById("landing-page");
+      const appL = document.getElementById("app-layout");
+      if (landing) landing.classList.remove("hidden");
+      if (appL) appL.classList.add("layout-hidden");
+      
+      const sec = document.getElementById(hash);
+      if (sec) {
+        sec.scrollIntoView({ behavior: "smooth" });
+      }
       return;
     }
-    if (hash === "candidate-dashboard" && currentPortalMode === "recruiter") {
-      hash = "dashboard";
+
+    if (!hash || hash === "" || hash === "landing") {
+      // Show Landing Page
+      const landing = document.getElementById("landing-page");
+      const appL = document.getElementById("app-layout");
+      if (landing) landing.classList.remove("hidden");
+      if (appL) appL.classList.add("layout-hidden");
+      return;
+    }
+
+    // Portal Redirect Protection
+    if (currentPortalMode === "recruiter" && hash === "candidate-dashboard") {
       window.location.hash = "#dashboard";
       return;
     }
-
-    // Determine Layout (Hide sidebar for landing page)
-    const dashboardLayout = document.getElementById("dashboard-layout");
-    const landingView = document.getElementById("landing-view");
-    
-    if (hash === "landing") {
-      dashboardLayout.classList.add("layout-hidden");
-      landingView.classList.add("active");
-      landingView.classList.remove("hidden");
-      document.body.classList.add("landing-active");
-    } else {
-      landingView.classList.add("hidden");
-      landingView.classList.remove("active");
-      dashboardLayout.classList.remove("layout-hidden");
-      document.body.classList.remove("landing-active");
-
-      // Update sidebar nav highlighting
-      document.querySelectorAll(".nav-item").forEach(item => {
-        item.classList.remove("active");
-        if (item.getAttribute("data-view") === hash) {
-          item.classList.add("active");
-        }
-      });
-
-      // Update page header title
-      const pageTitles = {
-        dashboard: "Recruiter Dashboard",
-        candidates: "Candidate Intelligence Dashboard",
-        hiddengems: "Hidden Gems Dashboard",
-        marketplace: "AI Talent Marketplace",
-        pipeline: "Future Talent Pipeline",
-        dna: currentPortalMode === "candidate" ? "My Skill DNA Profile" : "Candidate DNA Profiler",
-        insights: "AI System Insights",
-        notifications: "Notifications Center",
-        recommendation: "Explainable AI Match Matrix",
-        "candidate-dashboard": "Candidate Talent Dashboard"
-      };
-      
-      const titleEl = document.getElementById("page-title");
-      if (titleEl && pageTitles[hash]) {
-        titleEl.textContent = pageTitles[hash];
-      }
+    if (currentPortalMode === "candidate" && (hash === "dashboard" || hash === "discover" || hash === "pipeline" || hash === "analytics")) {
+      window.location.hash = "#candidate-dashboard";
+      return;
     }
+
+    // Hide Landing Page, Show App Shell
+    const landing = document.getElementById("landing-page");
+    const appL = document.getElementById("app-layout");
+    if (landing) landing.classList.add("hidden");
+    if (appL) appL.classList.remove("layout-hidden");
 
     // Hide all view panels
-    document.querySelectorAll(".view-panel").forEach(panel => {
-      panel.classList.add("hidden");
+    document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
+
+    // Show Target view panel
+    const panelId = routeMap[hash];
+    const targetPanel = document.getElementById(panelId);
+    if (targetPanel) {
+      targetPanel.classList.remove("hidden");
+    }
+
+    // Update active nav state in Sidebar
+    document.querySelectorAll(".sidebar-nav .nav-item").forEach(item => {
+      item.classList.remove("active");
+      if (item.getAttribute("data-view") === hash) {
+        item.classList.add("active");
+      }
     });
 
-    // Show the active panel
-    const activePanelId = routes[hash];
-    const activePanel = document.getElementById(activePanelId);
-    if (activePanel) {
-      activePanel.classList.remove("hidden");
+    // Update header title based on active view
+    const titleHeaders = {
+      "dashboard": "Overview Dashboard",
+      "discover": "Discover Talent",
+      "evaluate": currentPortalMode === "candidate" ? "My Evidence Profile" : "Evidence Profile Analysis",
+      "pipeline": "Manage Hiring Pipeline",
+      "grow": currentPortalMode === "candidate" ? "Career Growth Hub" : "Grow & Nurture Talent",
+      "analytics": "Hiring Analytics",
+      "candidate-dashboard": "Candidate Workspace Hub",
+      "notifications": "Notifications Center",
+      "settings": "Workspace Settings"
+    };
+    
+    const titleEl = document.getElementById("page-title");
+    if (titleEl && titleHeaders[hash]) {
+      titleEl.textContent = titleHeaders[hash];
     }
 
-    // Trigger View Loaders
+    // Loaders
     if (hash === "dashboard") loadDashboardView();
-    if (hash === "candidates") loadCandidatesView();
-    if (hash === "hiddengems") loadHiddenGemsView();
-    if (hash === "marketplace") loadMarketplaceView();
+    if (hash === "discover") loadDiscoverView();
+    if (hash === "evaluate") loadEvaluateView();
     if (hash === "pipeline") loadPipelineView();
-    if (hash === "dna") {
-      if (currentPortalMode === "candidate") {
-        currentCandidateDnaId = activeCandidateId;
-      }
-      loadCandidateDnaView();
-    }
-    if (hash === "insights") loadInsightsView();
-    if (hash === "notifications") loadNotificationsView();
-    if (hash === "recommendation") loadExplainableAiView();
+    if (hash === "grow") loadGrowView();
+    if (hash === "analytics") loadAnalyticsView();
     if (hash === "candidate-dashboard") loadCandidateDashboardView();
+    if (hash === "notifications") loadNotificationsView();
 
     lucide.createIcons();
   }
 
   window.addEventListener("hashchange", handleRouting);
-  // Initial route execution
-  handleRouting();
 
-  // 2. Sidebar Navigation Actions
-  const collapseBtn = document.getElementById("collapse-sidebar");
-  const sidebar = document.querySelector(".sidebar");
-  collapseBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("collapsed");
-    const isColl = sidebar.classList.contains("collapsed");
-    collapseBtn.querySelector("i").setAttribute("data-lucide", isColl ? "chevron-right" : "chevron-left");
-    lucide.createIcons();
+  // Bind sidebar nav clicks to update hash
+  document.querySelectorAll(".sidebar-nav .nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const view = item.getAttribute("data-view");
+      if (view) {
+        window.location.hash = `#${view}`;
+      }
+    });
   });
 
-  // Global search input handling
-  const globalSearch = document.getElementById("global-search");
-  globalSearch.addEventListener("input", (e) => {
-    globalSearchQuery = e.target.value.toLowerCase();
-    const hash = window.location.hash.substring(1);
-    if (hash === "candidates") {
-      loadCandidatesView();
-    } else if (hash === "marketplace") {
-      document.getElementById("market-search-input").value = e.target.value;
-      loadMarketplaceView();
+  // ------------------------------------------------------------
+  // PORTAL SELECTION MODAL
+  // ------------------------------------------------------------
+  const modeModal = document.getElementById("mode-modal");
+  const modeOptions = document.querySelectorAll(".mode-option");
+  let selectedMode = "recruiter";
+
+  modeOptions.forEach(opt => {
+    opt.addEventListener("click", () => {
+      modeOptions.forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      selectedMode = opt.getAttribute("data-mode");
+    });
+  });
+
+  document.getElementById("mode-continue").addEventListener("click", () => {
+    modeModal.classList.add("hidden");
+    if (selectedMode === "recruiter") {
+      setPortalMode("recruiter");
+      window.location.hash = "#dashboard";
+    } else if (selectedMode === "candidate") {
+      setPortalMode("candidate");
+      window.location.hash = "#candidate-dashboard";
+    } else if (selectedMode === "judge") {
+      // Start Judge Mode walkthrough
+      setPortalMode("recruiter");
+      startJudgeWalkthrough();
     }
   });
 
-  // JD Upload Modal Interactivity
-  const uploadJdBtn = document.getElementById("upload-jd-btn");
-  const uploadModal = document.getElementById("upload-modal");
-  const closeModalBtn = document.getElementById("close-modal-btn");
-  const cancelUploadBtn = document.getElementById("cancel-upload-btn");
-  const analyzeJdBtn = document.getElementById("analyze-jd-btn");
-  const dragDropArea = document.getElementById("drag-drop-area");
-  const jdFileInput = document.getElementById("jd-file-input");
-
-  function openJdModal() {
-    uploadModal.classList.remove("hidden");
-  }
-
-  function closeJdModal() {
-    uploadModal.classList.add("hidden");
-    document.getElementById("jd-text-input").value = "";
-  }
-
-  uploadJdBtn.addEventListener("click", openJdModal);
-  closeModalBtn.addEventListener("click", closeJdModal);
-  cancelUploadBtn.addEventListener("click", closeJdModal);
-  
-  dragDropArea.addEventListener("click", () => jdFileInput.click());
-  dragDropArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dragDropArea.style.borderColor = "var(--cyan)";
-    dragDropArea.style.background = "rgba(6, 182, 212, 0.04)";
-  });
-  dragDropArea.addEventListener("dragleave", () => {
-    dragDropArea.style.borderColor = "rgba(255, 255, 255, 0.15)";
-    dragDropArea.style.background = "transparent";
-  });
-  dragDropArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dragDropArea.style.borderColor = "var(--green)";
-    dragDropArea.style.background = "rgba(16, 185, 129, 0.04)";
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      simulateJdProcessing(files[0].name);
-    }
-  });
-  jdFileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-      simulateJdProcessing(e.target.files[0].name);
-    }
-  });
-
-  analyzeJdBtn.addEventListener("click", () => {
-    const textVal = document.getElementById("jd-text-input").value;
-    if (textVal.trim() !== "") {
-      simulateJdProcessing("Custom Text Upload");
-    }
-  });
-
-  function simulateJdProcessing(name) {
-    closeJdModal();
-    // 1. Add notification
-    const newNotif = {
-      id: `notif-${Date.now()}`,
-      type: "jd",
-      title: "New Job Analysis Complete",
-      body: `Successfully mapped competencies for target role: "${name}". Identified 3 skill adjacencies.`,
-      time: "Just now",
-      unread: true,
-      actionLink: "#candidates"
-    };
-    initialNotifications.unshift(newNotif);
-    updateNotifBadge();
-
-    // 2. Add Job Pipeline row
-    const newJob = {
-      job_id: `job-${initialJobs.length + 1}`,
-      title: name.split(".")[0].replace("_", " ").replace("-", " "),
-      department: "Engineering",
-      active_candidates: 3,
-      match_health: 89,
-      required_skills: ["Python", "AWS", "Kubernetes"]
-    };
-    initialJobs.push(newJob);
+  function setPortalMode(mode) {
+    currentPortalMode = mode;
     
-    // 3. Add mock candidates matching this job
-    const newCand = {
-      id: `cand-${candidates.length + 1}`,
-      name: "Dimitri Belov",
-      title: "Software Engineer",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80",
-      experience: 5,
-      overall_score: 91,
-      categories: ["hidden_gem", "fast_learner"],
-      skill_match_score: 88,
-      experience_score: 85,
-      potential_score: 93,
-      intent_score: 90,
-      alignment_score: 91,
-      skills: [
-        { name: "Python", level: 90, matchType: "exact" },
-        { name: "Docker", level: 88, matchType: "adjacent", equivalentTo: "Kubernetes" },
-        { name: "GCP Cloud", level: 82, matchType: "adjacent", equivalentTo: "AWS" }
-      ],
-      why_selected: "Dimitri was automatically mapped from our Talent Marketplace to the newly uploaded Job description. His docker and GCP competencies map cleanly to Kubernetes and AWS requirements.",
-      strengths: ["Strong systems scripting", "High adaptability across Cloud Environments"],
-      risks: ["Minimal container orchestration in production scales"],
-      predicted_role_2yr: "Senior Systems Engineer",
-      prediction_confidence: "88%",
-      prediction_rationale: "Shows highly analytical system design capabilities.",
-      readiness: { technical: 88, communication: 90, domain: 85, culture: 92 },
-      target_job_id: newJob.job_id
-    };
-    candidates.push(newCand);
-
-    // Refresh active panel if in Dashboard
-    if (window.location.hash === "#dashboard" || window.location.hash === "") {
-      loadDashboardView();
+    // Sidebar nav visibility adjustment
+    const recruiterNav = document.getElementById("recruiter-nav");
+    const candidateNav = document.getElementById("candidate-nav");
+    
+    if (mode === "recruiter") {
+      recruiterNav.classList.remove("hidden");
+      candidateNav.classList.add("hidden");
+      
+      // Update sidebar avatar and user details
+      document.getElementById("user-avatar-initials").textContent = "TS";
+      document.getElementById("user-name-display").textContent = "Tarun Smith";
+      document.getElementById("user-role-display").textContent = "Talent Partner";
+      
+      // Sidebar toggles
+      document.getElementById("mode-toggle-recruiter").classList.add("active");
+      document.getElementById("mode-toggle-candidate").classList.remove("active");
+    } else {
+      recruiterNav.classList.add("hidden");
+      candidateNav.classList.remove("hidden");
+      
+      // Candidate mode pre-seeds Helena Rostova details
+      document.getElementById("user-avatar-initials").textContent = "HR";
+      document.getElementById("user-name-display").textContent = "Helena Rostova";
+      document.getElementById("user-role-display").textContent = "Candidate User";
+      
+      // Sidebar toggles
+      document.getElementById("mode-toggle-candidate").classList.add("active");
+      document.getElementById("mode-toggle-recruiter").classList.remove("active");
     }
   }
 
-  // Notif badge count update
-  function updateNotifBadge() {
-    const unreadCount = initialNotifications.filter(n => n.unread).length;
-    const badgeEl = document.getElementById("notif-count");
-    if (badgeEl) {
-      badgeEl.textContent = unreadCount;
-      badgeEl.style.display = unreadCount === 0 ? "none" : "block";
-    }
-  }
-  updateNotifBadge();
+  // Sidebar Mode Toggles
+  document.getElementById("mode-toggle-recruiter").addEventListener("click", () => {
+    setPortalMode("recruiter");
+    window.location.hash = "#dashboard";
+    showToast("Switched to Recruiter Portal view");
+  });
+  document.getElementById("mode-toggle-candidate").addEventListener("click", () => {
+    setPortalMode("candidate");
+    window.location.hash = "#candidate-dashboard";
+    showToast("Switched to Candidate Hub view");
+  });
 
-  // Bind bell button and logout
-  document.getElementById("notif-bell-btn").addEventListener("click", () => {
+  // Guarded event listener utility
+  const safeBindClick = (id, callback) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("click", callback);
+    }
+  };
+
+  // Landing Page Modal Triggers
+  safeBindClick("landing-get-started", () => modeModal.classList.remove("hidden"));
+  safeBindClick("landing-login-btn", () => modeModal.classList.remove("hidden"));
+  safeBindClick("hero-primary-cta", () => modeModal.classList.remove("hidden"));
+  safeBindClick("cta-get-started", () => modeModal.classList.remove("hidden"));
+
+  // Landing Page Demo Triggers
+  safeBindClick("hero-secondary-cta", () => {
+    showToast("Demo request submitted! We will contact you within 24 hours.", "success");
+  });
+  safeBindClick("cta-demo", () => {
+    showToast("Demo request submitted! We will contact you within 24 hours.", "success");
+  });
+
+  // Exit App Workspace
+  safeBindClick("sidebar-exit-btn", () => {
+    window.location.hash = "#landing";
+    showToast("Logged out of the active session", "info");
+  });
+
+  // Topbar Alerts
+  safeBindClick("topbar-notif-btn", () => {
     window.location.hash = "#notifications";
   });
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    localStorage.removeItem('hm-logged-in');
-    localStorage.removeItem('hm-user-email');
-    localStorage.removeItem('hm-user-type');
-    localStorage.removeItem('hm-onboarded');
-    window.location.hash = "#landing";
+
+  // Topbar Search filter
+  document.getElementById("global-search").addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    const activeHash = window.location.hash.substring(1);
+    if (activeHash === "discover") {
+      loadDiscoverView();
+    } else if (activeHash === "dashboard") {
+      loadDashboardView();
+    }
   });
 
-  // --- VIEW 2: RECRUITER DASHBOARD ---
-  function loadDashboardView() {
-    const pipelineList = document.getElementById("jobs-pipeline-list");
-    if (pipelineList) {
-      pipelineList.innerHTML = "";
-      initialJobs.forEach(job => {
-        const row = document.createElement("div");
-        row.className = "job-row";
-        row.addEventListener("click", () => {
-          activeJobFilter = job.job_id;
-          window.location.hash = "#candidates";
-        });
+  // ------------------------------------------------------------
+  // JUDGE WALKTHROUGH CONTROLLER
+  // ------------------------------------------------------------
+  const judgeWalkthrough = document.getElementById("judge-walkthrough");
+  const judgePrevBtn = document.getElementById("judge-prev");
+  const judgeNextBtn = document.getElementById("judge-next");
+  const judgeFinishBtn = document.getElementById("judge-finish");
+  const judgeSteps = document.querySelectorAll(".judge-step-pane");
 
-        row.innerHTML = `
-          <div class="job-main">
-            <span class="job-title">${job.title}</span>
-            <span class="job-meta">${job.department}</span>
-          </div>
-          <div>
-            <span class="job-stat-label">Applicants</span>
-            <span class="job-stat-val">${job.active_candidates}</span>
-          </div>
-          <div>
-            <span class="job-stat-label">Match Health</span>
-            <span class="job-stat-val text-green">${job.match_health}%</span>
-          </div>
-          <div>
-            <span class="job-stat-label">Core Tech</span>
-            <span class="job-badge bg-blue-tint text-blue">${job.required_skills[0]}</span>
-          </div>
-          <div>
-            <span class="job-stat-label">Action</span>
-            <span class="job-badge bg-purple-tint text-purple" style="cursor: pointer;">Analyze DNA</span>
-          </div>
-        `;
-        pipelineList.appendChild(row);
-      });
+  document.getElementById("topbar-tour-btn").addEventListener("click", () => {
+    startJudgeWalkthrough();
+  });
+
+  function startJudgeWalkthrough() {
+    currentJudgeStep = 1;
+    judgeWalkthrough.classList.remove("hidden");
+    renderJudgeStep();
+  }
+
+  function renderJudgeStep() {
+    // Hide all step panels
+    judgeSteps.forEach(pane => pane.classList.remove("active"));
+    
+    // Show current step panel
+    const currentPane = document.querySelector(`.judge-step-pane[data-step="${currentJudgeStep}"]`);
+    if (currentPane) {
+      currentPane.classList.add("active");
     }
 
-    const rematchesList = document.getElementById("recent-rematches-list");
-    if (rematchesList) {
-      rematchesList.innerHTML = "";
-      rematches.forEach(rematch => {
-        const item = document.createElement("div");
-        item.className = "rematch-item";
-        item.innerHTML = `
-          <img src="${rematch.avatar}" alt="Avatar" class="rematch-avatar">
-          <div class="rematch-info">
-            <span class="rematch-candidate">${rematch.candidateName}</span>
-            <span class="rematch-role">${rematch.newMatchRole}</span>
-          </div>
-          <span class="rematch-score">${rematch.score}%</span>
-        `;
-        rematchesList.appendChild(item);
-      });
+    // Progress bar update
+    document.getElementById("judge-progress-bar").style.width = `${(currentJudgeStep / 10) * 100}%`;
+    document.getElementById("judge-step-label").textContent = `Step ${currentJudgeStep} of 10`;
+
+    // Button rules
+    judgePrevBtn.disabled = currentJudgeStep === 1;
+    
+    if (currentJudgeStep === 10) {
+      judgeNextBtn.classList.add("hidden");
+      judgeFinishBtn.classList.remove("hidden");
+    } else {
+      judgeNextBtn.classList.remove("hidden");
+      judgeFinishBtn.classList.add("hidden");
     }
 
-    // Populate Recruiter Dashboard widgets dynamically
-    const gemsContainer = document.getElementById("widget-top-gems");
-    if (gemsContainer) {
-      gemsContainer.innerHTML = "";
-      // Grab top candidates / hidden gems
-      const topGemsList = candidates.slice(0, 3);
-      topGemsList.forEach(c => {
-        const isGem = c.categories.includes("hidden_gem");
-        const badge = isGem ? `<span class="badge badge-purple" style="font-size:9px;">GEM</span>` : `<span class="badge badge-cyan" style="font-size:9px;">TOP</span>`;
-        const div = document.createElement("div");
-        div.className = "dashboard-list-item";
-        div.onclick = () => {
-          currentRecCandidateId = c.id;
-          window.location.hash = "#recommendation";
-        };
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
-            <div style="display:flex; flex-direction:column;">
-              <span style="font-size:12px; font-weight:600;">${c.name}</span>
-              <span style="font-size:10px; color:var(--text-muted);">${c.title}</span>
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:700; color:var(--cyan);">${c.overall_score}%</span>
-            ${badge}
-          </div>
-        `;
-        gemsContainer.appendChild(div);
+    // Render navigation indicators (dots)
+    const dotsContainer = document.getElementById("judge-dots-container");
+    dotsContainer.innerHTML = "";
+    for (let i = 1; i <= 10; i++) {
+      const dot = document.createElement("div");
+      dot.className = `judge-nav-dot ${i === currentJudgeStep ? "active" : ""} ${i < currentJudgeStep ? "done" : ""}`;
+      dot.addEventListener("click", () => {
+        currentJudgeStep = i;
+        renderJudgeStep();
       });
+      dotsContainer.appendChild(dot);
     }
 
-    const leadersContainer = document.getElementById("widget-dna-leaders");
-    if (leadersContainer) {
-      leadersContainer.innerHTML = "";
-      const leadersList = [...candidates].sort((a, b) => b.potential_score - a.potential_score).slice(0, 3);
-      leadersList.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "dashboard-list-item";
-        div.onclick = () => {
-          currentCandidateDnaId = c.id;
-          window.location.hash = "#dna";
-        };
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
-            <div style="display:flex; flex-direction:column;">
-              <span style="font-size:12px; font-weight:600;">${c.name}</span>
-              <span style="font-size:10px; color:var(--text-muted); Future: ${c.predicted_role_2yr}</span>
-            </div>
-          </div>
-          <div style="display:flex; flex-direction:column; align-items:flex-end;">
-            <span style="font-size:11px; color:var(--purple); font-weight:600;">Potential: ${c.potential_score}</span>
-            <span style="font-size:10px; color:var(--green);">Intent: ${c.intent_score}</span>
-          </div>
-        `;
-        leadersContainer.appendChild(div);
-      });
-    }
-
-    const authenticityContainer = document.getElementById("widget-authenticity-list");
-    if (authenticityContainer) {
-      authenticityContainer.innerHTML = "";
-      const authList = candidates.slice(0, 3);
-      authList.forEach(c => {
-        const isVerified = c.authenticity_status === "verified";
-        const statusChip = isVerified 
-          ? `<span class="opp-badge interview" style="padding:2px 6px; font-size:9px;"><i data-lucide="shield-check" class="icon-tiny"></i> Verified (${c.authenticity_score}%)</span>` 
-          : `<span class="opp-badge nurture" style="padding:2px 6px; font-size:9px;"><i data-lucide="clock" class="icon-tiny"></i> Pending</span>`;
-        const div = document.createElement("div");
-        div.className = "dashboard-list-item";
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${c.avatar}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-color);">
-            <span style="font-size:12px; font-weight:600;">${c.name}</span>
-          </div>
-          <div>
-            ${statusChip}
-          </div>
-        `;
-        authenticityContainer.appendChild(div);
-      });
+    // INTERACTIVE WALKTHROUGH STEPS (Routing on Step change)
+    switch(currentJudgeStep) {
+      case 1:
+        // Welcome pane, stay
+        break;
+      case 2:
+        // Show landing page
+        window.location.hash = "#landing";
+        break;
+      case 3:
+        // Route to Recruiter Dashboard
+        setPortalMode("recruiter");
+        window.location.hash = "#dashboard";
+        break;
+      case 4:
+        // Route to Discover Sourcing
+        window.location.hash = "#discover";
+        break;
+      case 5:
+        // Route to Helena's Evidence Profile
+        activeCandidateId = "cand-1";
+        window.location.hash = "#evaluate";
+        break;
+      case 6:
+        // Route to Kanban board
+        window.location.hash = "#pipeline";
+        break;
+      case 7:
+        // Route to Grow High Potential tab
+        activeGrowTab = "high-potential";
+        window.location.hash = "#grow";
+        break;
+      case 8:
+        // Route to Analytics Charts
+        window.location.hash = "#analytics";
+        break;
+      case 9:
+        // Switch to Candidate Workspace
+        setPortalMode("candidate");
+        window.location.hash = "#candidate-dashboard";
+        break;
+      case 10:
+        // Complete tour, review
+        setPortalMode("recruiter");
+        window.location.hash = "#dashboard";
+        break;
     }
   }
 
-  // --- VIEW 3: CANDIDATE INTELLIGENCE ---
-  function loadCandidatesView() {
-    // Populate job filter select
-    const selectFilter = document.getElementById("job-select-filter");
-    selectFilter.innerHTML = "";
-    initialJobs.forEach(j => {
-      const opt = document.createElement("option");
-      opt.value = j.job_id;
-      opt.textContent = j.title;
-      if (j.job_id === activeJobFilter) opt.selected = true;
-      selectFilter.appendChild(opt);
+  judgeNextBtn.addEventListener("click", () => {
+    if (currentJudgeStep < 10) {
+      currentJudgeStep++;
+      renderJudgeStep();
+    }
+  });
+
+  judgePrevBtn.addEventListener("click", () => {
+    if (currentJudgeStep > 1) {
+      currentJudgeStep--;
+      renderJudgeStep();
+    }
+  });
+
+  judgeFinishBtn.addEventListener("click", () => {
+    judgeWalkthrough.classList.add("hidden");
+    showToast("Thank you for completing the guided tour! Enjoy exploring.");
+  });
+
+  // ------------------------------------------------------------
+  // LANDING PAGE INTERACTION: TABS & FAQ
+  // ------------------------------------------------------------
+  const screenshotTabBtns = document.querySelectorAll(".screenshot-tab-btn");
+  const screenshotPanes = document.querySelectorAll(".screenshot-pane");
+
+  screenshotTabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      screenshotTabBtns.forEach(b => b.classList.remove("active"));
+      screenshotPanes.forEach(p => p.classList.remove("active"));
+      
+      btn.classList.add("active");
+      const tabId = `tab-${btn.getAttribute("data-tab")}`;
+      document.getElementById(tabId).classList.add("active");
+    });
+  });
+
+  // FAQ Accordion Collapsible
+  const faqItems = document.querySelectorAll(".faq-list .accordion-item");
+  faqItems.forEach(item => {
+    const header = item.querySelector(".accordion-header");
+    header.addEventListener("click", () => {
+      const isOpen = item.classList.contains("open");
+      faqItems.forEach(i => i.classList.remove("open"));
+      if (!isOpen) {
+        item.classList.add("open");
+      }
+    });
+  });
+
+  // ------------------------------------------------------------
+  // GENERAL SETTINGS TAB NAVIGATION
+  // ------------------------------------------------------------
+  const settingsNavItems = document.querySelectorAll(".settings-nav-item");
+  settingsNavItems.forEach(item => {
+    item.addEventListener("click", () => {
+      settingsNavItems.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+      
+      const panelKey = item.getAttribute("data-settings-panel");
+      activeSettingsTab = panelKey;
+      
+      // Update Settings Header text
+      const settingsPanel = document.querySelector(".settings-panel");
+      if (panelKey === "general") {
+        settingsPanel.innerHTML = `
+          <h3 class="settings-section-title">General Settings</h3>
+          <p class="settings-section-sub">Configure overall portal behavior and evaluation preferences.</p>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Default Matching Threshold</div>
+              <div class="settings-row-desc">Only show candidates on the recruiter dashboard with a match probability higher than this.</div>
+            </div>
+            <select class="form-select" style="width: 100px;">
+              <option>85%</option>
+              <option>80%</option>
+              <option>75%</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Enable Skill Adjacency Sourcing</div>
+              <div class="settings-row-desc">Automatically translate related technical frames when searching profiles.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Combating Pedigree Bias</div>
+              <div class="settings-row-desc">Weight historical performance and project indices higher than university credentials.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      } else if (panelKey === "notifications") {
+        settingsPanel.innerHTML = `
+          <h3 class="settings-section-title">Notification Settings</h3>
+          <p class="settings-section-sub">Configure email alerts and system threshold alerts.</p>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Ecosystem Match Alerts</div>
+              <div class="settings-row-desc">Send immediate notifications when a matching candidate is found.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Candidate Skill Updates</div>
+              <div class="settings-row-desc">Alert when candidate scores change based on external github project scans.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      } else {
+        settingsPanel.innerHTML = `
+          <h3 class="settings-section-title">Security & API Keys</h3>
+          <p class="settings-section-sub">Generate sandbox credentials for ATS integrations.</p>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Developer API sandbox key</div>
+              <div class="settings-row-desc">Used to query candidate matching models from external workflows.</div>
+            </div>
+            <input type="text" class="form-input" style="width: 240px;" value="hm_live_72k49a21b38e7ff910aa5" readonly>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Enable SAML Single Sign-On</div>
+              <div class="settings-row-desc">Force enterprise logins via okta, onelogin, or azure ad.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      }
+    });
+  });
+
+  // ------------------------------------------------------------
+  // DYNAMIC VIEW LOADERS
+  // ------------------------------------------------------------
+
+  // 1. RECRUITER DASHBOARD
+  function loadDashboardView() {
+    const tableBody = document.getElementById("dashboard-candidates-body");
+    tableBody.innerHTML = "";
+
+    // Filter candidates based on search
+    const filteredCandidates = candidates.filter(cand => {
+      return cand.name.toLowerCase().includes(searchQuery) ||
+             cand.title.toLowerCase().includes(searchQuery);
     });
 
-    // Event listeners for filters
-    selectFilter.onchange = (e) => {
-      activeJobFilter = e.target.value;
-      loadCandidatesView();
-    };
-
-    const sortSelect = document.getElementById("sort-select");
-    sortSelect.value = activeSort;
-    sortSelect.onchange = (e) => {
-      activeSort = e.target.value;
-      loadCandidatesView();
-    };
-
-    const gemsCheckbox = document.getElementById("filter-gems-only");
-    gemsCheckbox.checked = showGemsOnly;
-    gemsCheckbox.onchange = (e) => {
-      showGemsOnly = e.target.checked;
-      loadCandidatesView();
-    };
-
-    // Filter and Sort Candidates
-    let filtered = candidates.filter(c => c.target_job_id === activeJobFilter);
-    
-    if (showGemsOnly) {
-      filtered = filtered.filter(c => c.categories.includes("hidden_gem"));
+    if (filteredCandidates.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 32px; color: var(--text-muted);">No candidates match your active search filter.</td></tr>`;
     }
 
-    if (globalSearchQuery !== "") {
-      filtered = filtered.filter(c => 
-        c.name.toLowerCase().includes(globalSearchQuery) || 
-        c.title.toLowerCase().includes(globalSearchQuery) ||
-        c.skills.some(s => s.name.toLowerCase().includes(globalSearchQuery))
-      );
-    }
+    filteredCandidates.forEach(cand => {
+      const trMain = document.createElement("tr");
+      trMain.style.cursor = "pointer";
+      
+      const badgeClass = cand.overall_score >= 90 ? "badge-success" : "badge-warning";
+      const recLabel = cand.overall_score >= 90 ? "Strong Hire" : "Consider";
+      
+      // Resolve job title
+      const job = initialJobs.find(j => j.job_id === cand.target_job_id);
+      const jobTitle = job ? job.title : "Talent Marketplace";
 
-    // Sort mapping
-    filtered.sort((a, b) => {
-      if (activeSort === "score") return b.overall_score - a.overall_score;
-      if (activeSort === "potential") return b.potential_score - a.potential_score;
-      if (activeSort === "intent") return b.intent_score - a.intent_score;
-      if (activeSort === "experience") return b.experience - a.experience;
-      return 0;
+      trMain.innerHTML = `
+        <td>
+          <div class="candidate-avatar-cell">
+            <div class="candidate-mini-avatar" style="background: linear-gradient(135deg, var(--brand-500), var(--brand-700));">${cand.name.split(" ").map(n => n[0]).join("")}</div>
+            <div>
+              <span class="candidate-name">${cand.name}</span>
+              <div class="candidate-role">${cand.title}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="text-sm font-semibold">${jobTitle}</span></td>
+        <td>
+          <div class="flex items-center gap-2">
+            <span class="fw-bold text-primary">${cand.overall_score}%</span>
+          </div>
+        </td>
+        <td><span class="badge ${badgeClass}">${recLabel}</span></td>
+        <td>
+          <div class="flex items-center gap-2" style="width: 100px;">
+            <div style="flex: 1; height: 6px; background: var(--slate-100); border-radius: var(--r-full); overflow: hidden;">
+              <div style="width: ${cand.overall_score}%; height: 100%; background: var(--success); border-radius: var(--r-full);"></div>
+            </div>
+            <span class="text-xs text-muted fw-semi">${cand.overall_score}%</span>
+          </div>
+        </td>
+        <td>
+          <div class="cc-actions">
+            <button class="btn btn-secondary btn-sm evaluate-fit-btn" data-id="${cand.id}">Evaluate Fit</button>
+            <button class="btn btn-ghost btn-sm expand-details-btn" data-id="${cand.id}"><i data-lucide="chevron-down"></i></button>
+          </div>
+        </td>
+      `;
+
+      // Expand details row
+      const trExpand = document.createElement("tr");
+      trExpand.className = "expand-row hidden";
+      trExpand.id = `expand-details-${cand.id}`;
+
+      // Build adjacent skills chips
+      let skillsChipsHtml = "";
+      cand.skills.forEach(s => {
+        const iconName = s.matchType === "exact" ? "check" : "shuffle";
+        const iconColor = s.matchType === "exact" ? "text-success" : "text-primary";
+        skillsChipsHtml += `
+          <div class="expand-signal-chip">
+            <i data-lucide="${iconName}" class="${iconColor}" style="width: 12px; height: 12px;"></i>
+            <span>${s.name} ${s.matchType === "adjacent" ? `(${s.equivalentTo})` : ""}</span>
+          </div>
+        `;
+      });
+
+      trExpand.innerHTML = `
+        <td colspan="6">
+          <div class="candidate-row-expand">
+            <div class="expand-why-label">AI Rationale Summary</div>
+            <p class="text-sm text-2" style="line-height: 1.6; margin-bottom: 12px;">${cand.why_selected}</p>
+            <div class="expand-why-label" style="margin-top: 12px;">Verified Adjacent Skills</div>
+            <div class="expand-signals">${skillsChipsHtml}</div>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(trMain);
+      tableBody.appendChild(trExpand);
+
+      // Event listeners
+      trMain.querySelector(".evaluate-fit-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        activeCandidateId = cand.id;
+        window.location.hash = "#evaluate";
+      });
+
+      trMain.querySelector(".expand-details-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const icon = trMain.querySelector(".expand-details-btn i");
+        const panel = document.getElementById(`expand-details-${cand.id}`);
+        const isHidden = panel.classList.contains("hidden");
+        
+        if (isHidden) {
+          panel.classList.remove("hidden");
+          panel.querySelector(".candidate-row-expand").classList.add("open");
+          icon.setAttribute("data-lucide", "chevron-up");
+        } else {
+          panel.classList.add("hidden");
+          panel.querySelector(".candidate-row-expand").classList.remove("open");
+          icon.setAttribute("data-lucide", "chevron-down");
+        }
+        lucide.createIcons();
+      });
+      
+      // Row click evaluates candidate
+      trMain.addEventListener("click", () => {
+        activeCandidateId = cand.id;
+        window.location.hash = "#evaluate";
+      });
     });
 
-    // Update count header
-    const currentJob = initialJobs.find(j => j.job_id === activeJobFilter);
-    document.getElementById("job-title-header").textContent = currentJob ? `Candidates for ${currentJob.title}` : "Candidates";
-    document.getElementById("candidate-count").textContent = `${filtered.length} candidates matches found`;
+    // Populate Activity Feed
+    const activityFeed = document.getElementById("activity-feed-container");
+    activityFeed.innerHTML = "";
+    initialNotifications.forEach(notif => {
+      const item = document.createElement("div");
+      item.className = "activity-item";
+      
+      let dotColor = "bg-brand";
+      if (notif.type === "rematch") dotColor = "dot-green";
+      if (notif.type === "growth") dotColor = "dot-violet";
+      if (notif.type === "pipeline") dotColor = "dot-amber";
 
-    // Populate candidates list UI
-    const container = document.getElementById("candidates-list-container");
-    container.innerHTML = "";
+      item.innerHTML = `
+        <div class="activity-dot ${dotColor}"></div>
+        <div class="activity-text">
+          <span>${notif.body}</span>
+          <div class="activity-time">${notif.time}</div>
+        </div>
+      `;
+      activityFeed.appendChild(item);
+    });
+
+    lucide.createIcons();
+  }
+
+  // 2. DISCOVER TALENT (SOURCING)
+  function loadDiscoverView() {
+    const jobSelect = document.getElementById("discover-job-select");
+    const gridContainer = document.getElementById("discover-candidate-grid");
+
+    // Populate Job Selector dropdown once
+    if (jobSelect.children.length === 0) {
+      initialJobs.forEach(job => {
+        const opt = document.createElement("option");
+        opt.value = job.job_id;
+        opt.textContent = `${job.title} (${job.department})`;
+        jobSelect.appendChild(opt);
+      });
+
+      jobSelect.addEventListener("change", (e) => {
+        activeDiscoverJobId = e.target.value;
+        loadDiscoverView();
+      });
+
+      // Filter chips click handling
+      document.querySelectorAll(".candidates-filters .filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.querySelectorAll(".candidates-filters .filter-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          discoverFilterThreshold = chip.getAttribute("data-filter");
+          loadDiscoverView();
+        });
+      });
+    }
+
+    gridContainer.innerHTML = "";
+
+    // Filter candidates by selected job, match threshold, and search query
+    let filtered = candidates.filter(cand => {
+      // Job opening filter
+      if (activeDiscoverJobId !== "all" && cand.target_job_id !== activeDiscoverJobId) {
+        // If candidate is in the global talent pool, keep them
+        if (cand.target_job_id !== "none") return false;
+      }
+      return true;
+    });
+
+    // Sift Threshold Filters
+    if (discoverFilterThreshold === "high") {
+      filtered = filtered.filter(cand => cand.overall_score >= 90);
+    } else if (discoverFilterThreshold === "potential") {
+      filtered = filtered.filter(cand => cand.categories.includes("high_potential"));
+    }
+
+    // Search query filter
+    if (searchQuery !== "") {
+      filtered = filtered.filter(cand => {
+        return cand.name.toLowerCase().includes(searchQuery) ||
+               cand.title.toLowerCase().includes(searchQuery);
+      });
+    }
 
     if (filtered.length === 0) {
-      container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">No candidates matching the current filters.</div>`;
-      document.getElementById("candidate-quickview").classList.add("hidden");
+      gridContainer.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="empty-icon"><i data-lucide="search"></i></div>
+          <div class="empty-title">No Profiles Found</div>
+          <div class="empty-desc">No candidates match your active job selection or search criteria. Try modifying your filter rules.</div>
+        </div>
+      `;
+      lucide.createIcons();
       return;
     }
 
-    filtered.forEach((c, idx) => {
-      const row = document.createElement("div");
-      row.className = `candidate-card-row ${c.id === currentRecCandidateId ? 'selected' : ''}`;
-      row.addEventListener("click", () => {
-        currentRecCandidateId = c.id;
-        loadCandidatesView();
-      });
-
-      const isGem = c.categories.includes("hidden_gem");
-      const gemBadge = isGem ? `<i data-lucide="gem" class="text-purple icon-tiny" title="Hidden Gem"></i>` : "";
-
-      row.innerHTML = `
-        <img src="${c.avatar}" alt="Avatar" class="candidate-avatar">
-        <div class="c-name-col">
-          <span class="c-name">${c.name} ${gemBadge}</span>
-          <span class="c-title">${c.title}</span>
-        </div>
-        <div class="score-col">
-          <span class="score-lbl">Hire Prob</span>
-          <span class="score-val text-cyan">${c.overall_score}%</span>
-        </div>
-        <div class="score-col">
-          <span class="score-lbl">Qualified</span>
-          <span class="score-val text-purple">${Math.round((c.hire_probability?.qualified || 0.8) * 100)}%</span>
-        </div>
-        <div class="score-col">
-          <span class="score-lbl">Available</span>
-          <span class="score-val text-green">${Math.round((c.hire_probability?.available || 0.8) * 100)}%</span>
-        </div>
-      `;
-      container.appendChild(row);
-    });
-
-    // Load Quickview Detail Card
-    const selectedCand = filtered.find(c => c.id === currentRecCandidateId) || filtered[0];
-    if (selectedCand) {
-      currentRecCandidateId = selectedCand.id;
-      showQuickviewCard(selectedCand);
-    }
-  }
-
-  function showQuickviewCard(cand) {
-    const qvPanel = document.getElementById("candidate-quickview");
-    qvPanel.classList.remove("hidden");
-
-    let badgeHtml = "";
-    if (cand.honeypot_risk) {
-      badgeHtml += `<span class="badge" style="background: var(--orange); margin-right: 4px;">⚠️ HONEYPOT RISK</span>`;
-    }
-    if (cand.hidden_gem) {
-      badgeHtml += `<span class="badge badge-purple" style="margin-right: 4px;">💎 HIDDEN GEM</span>`;
-    }
-
-    const categoryBadges = badgeHtml + cand.categories.map(cat => {
-      const name = cat.replace("_", " ").toUpperCase();
-      const color = cat === "hidden_gem" ? "badge-purple" : cat === "honeypot_risk" ? "badge-orange" : "badge-cyan";
-      return `<span class="badge ${color}">${name}</span>`;
-    }).join(" ");
-
-    const skillsHtml = cand.skills.map(s => {
-      const typeClass = s.matchType === "exact" ? "match" : s.matchType === "adjacent" ? "adjacent" : "";
-      return `<span class="skill-tag ${typeClass}">${s.name} (${s.level})</span>`;
-    }).join("");
-
-    // Fallback probability values if they don't exist on older/custom candidates
-    const hp = cand.hire_probability || {
-      qualified: (cand.candidate_dna?.technical_fit || cand.skill_match_score || 80) / 100,
-      available: (cand.candidate_dna?.experience_fit || cand.experience_score || 80) / 100,
-      engageable: (cand.candidate_dna?.career_trajectory || cand.potential_score || 85) / 100,
-      legitimate: cand.honeypot_risk ? 0.10 : (cand.candidate_dna?.behavioral_intent || cand.alignment_score || 90) / 100,
-      growth: (cand.candidate_dna?.credibility || 80) / 100,
-      scrappiness: (cand.candidate_dna?.hidden_gem_score || (cand.categories.includes("hidden_gem") ? 90 : 60)) / 100,
-      hire_score: cand.overall_score
-    };
-
-    // Recalculate if mismatch
-    const calculatedScore = Math.round(hp.qualified * hp.available * hp.engageable * hp.legitimate * hp.growth * hp.scrappiness * 100);
-    const finalScore = hp.hire_score || calculatedScore;
-
-    // Detect "zero-killer" factor (factor < 0.15)
-    let zeroKillerMsg = "";
-    if (hp.qualified < 0.15) zeroKillerMsg = `Critical deficiency in Qualification (${Math.round(hp.qualified*100)}%)`;
-    else if (hp.available < 0.15) zeroKillerMsg = `Critical deficiency in Availability (${Math.round(hp.available*100)}%)`;
-    else if (hp.engageable < 0.15) zeroKillerMsg = `Critical deficiency in Engageability (${Math.round(hp.engageable*100)}%)`;
-    else if (hp.legitimate < 0.15) zeroKillerMsg = `Critical deficiency in Legitimacy / Credibility (${Math.round(hp.legitimate*100)}%)`;
-    else if (hp.growth < 0.15) zeroKillerMsg = `Critical deficiency in Growth Potential (${Math.round(hp.growth*100)}%)`;
-    else if (hp.scrappiness < 0.15) zeroKillerMsg = `Critical deficiency in Scrappiness (${Math.round(hp.scrappiness*100)}%)`;
-
-    qvPanel.innerHTML = `
-      <div class="qv-header">
-        <div class="qv-profile-block">
-          <img src="${cand.avatar}" alt="Avatar" class="avatar-large">
-          <div class="qv-profile-meta">
-            <h3>${cand.name}</h3>
-            <p>${cand.title} • ${cand.experience} yrs exp</p>
-          </div>
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; max-width: 50%; justify-content: flex-end;">${categoryBadges}</div>
-      </div>
-
-      ${zeroKillerMsg ? `
-        <div class="p-factor-zero-alert">
-          <i data-lucide="alert-octagon"></i>
-          <div>
-            <strong>Zero-Killer Alert</strong>
-            <p style="margin: 0; margin-top: 2px;">${zeroKillerMsg}. Final Hire Probability is suppressed due to multiplicative constraints.</p>
-          </div>
-        </div>
-      ` : ''}
-
-      ${cand.honeypot_risk && !zeroKillerMsg ? `
-        <div class="honeypot-alert-banner" style="background: rgba(249, 115, 22, 0.1); border: 1px solid var(--orange); padding: 12px; border-radius: 8px; margin: 16px 0; display: flex; gap: 10px; align-items: center;">
-          <i data-lucide="alert-triangle" style="color: var(--orange); flex-shrink: 0;"></i>
-          <div>
-            <strong style="color: var(--orange); font-size: 13px; display: block; margin-bottom: 2px;">Honeypot Profile Alert</strong>
-            <p style="margin: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3;">This candidate profile shows suspicious keyword matching indicators and timeline anomalies.</p>
-          </div>
-        </div>
-      ` : ''}
-
-      <div class="hire-prob-score-badge">
-        <span class="score-title">Evidence-Driven Hire Probability</span>
-        <span class="score-value">${finalScore}%</span>
-        <span class="score-label">${finalScore >= 70 ? '✓ High Recruit Confidence' : finalScore >= 40 ? '⚡ Moderate Recruit Confidence' : '⚠️ Elevated Risk'}</span>
-      </div>
-
-      <div class="qv-insights-section">
-        <h4>Probability Dimensions (Multiplicative)</h4>
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-          
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Qualified) — Execution Capability</span>
-              <span class="p-label-val">${Math.round(hp.qualified * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.qualified * 100}%; background: var(--cyan);"></div>
-            </div>
-          </div>
-
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Available) — Market Readiness</span>
-              <span class="p-label-val">${Math.round(hp.available * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.available * 100}%; background: var(--blue);"></div>
-            </div>
-          </div>
-
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Engageable) — Response Velocity</span>
-              <span class="p-label-val">${Math.round(hp.engageable * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.engageable * 100}%; background: var(--green);"></div>
-            </div>
-          </div>
-
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Legitimate) — Verification Integrity</span>
-              <span class="p-label-val" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'inherit'};">${Math.round(hp.legitimate * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.legitimate * 100}%; background: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--purple)'};"></div>
-            </div>
-          </div>
-
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Growth) — Adaptive Potential</span>
-              <span class="p-label-val">${Math.round(hp.growth * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.growth * 100}%; background: #ec4899;"></div>
-            </div>
-          </div>
-
-          <div class="p-factor-bar">
-            <div class="p-label-row">
-              <span class="p-label-name">P(Scrappiness) — Self-Direction</span>
-              <span class="p-label-val">${Math.round(hp.scrappiness * 100)}%</span>
-            </div>
-            <div class="p-progress-bg">
-              <div class="p-progress-fill" style="width: ${hp.scrappiness * 100}%; background: #eab308;"></div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="qv-insights-section reasoning-section">
-        <div class="reasoning-toggle" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 6px 0;" onclick="const det = this.nextElementSibling; det.classList.toggle('hidden'); const icon = this.querySelector('.chevron-icon'); if(det.classList.contains('hidden')){ icon.style.transform='rotate(0deg)'; }else{ icon.style.transform='rotate(180deg)'; }">
-          <h4 style="margin:0;">Recruiter Reasoning Analysis</h4>
-          <i data-lucide="chevron-down" class="chevron-icon icon-tiny text-muted" style="transition: transform 0.2s;"></i>
-        </div>
-        <div class="qv-insight-text hidden reasoning-text-box">
-          ${cand.reasoning || cand.why_selected}
-        </div>
-      </div>
-
-      <div class="qv-insights-section">
-        <h4>Match Rationale</h4>
-        <p class="qv-insight-text">${cand.why_selected}</p>
-      </div>
-
-      <div class="qv-insights-section">
-        <h4>Mapped Skill Matrix</h4>
-        <div class="skills-wrap">${skillsHtml}</div>
-      </div>
-
-      <div class="qv-insights-section qv-footer-section">
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-          <a href="#dna" class="btn btn-secondary btn-small" id="qv-dna-link">View DNA Radar</a>
-          <a href="#recommendation" class="btn btn-primary btn-small" id="qv-rec-link">Explain Match Decision</a>
-        </div>
-      </div>
-    `;
-
-    document.getElementById("qv-dna-link").addEventListener("click", () => {
-      currentCandidateDnaId = cand.id;
-    });
-
-    document.getElementById("qv-rec-link").addEventListener("click", () => {
-      currentRecCandidateId = cand.id;
-    });
-
-    lucide.createIcons();
-  }
-
-  // --- VIEW 4: HIDDEN GEMS DASHBOARD ---
-  function loadHiddenGemsView() {
-    const container = document.getElementById("gems-grid-container");
-    container.innerHTML = "";
-
-    const gems = candidates.filter(c => c.categories.includes("hidden_gem"));
-
-    gems.forEach(gem => {
+    filtered.forEach(cand => {
       const card = document.createElement("div");
-      card.className = "gem-card glass-card";
+      card.className = "candidate-card";
       
-      const skillRepl = gem.skills.filter(s => s.matchType === "adjacent").map(s => {
-        return `<div class="adj-chain">
-                  <span class="skill-tag match">${s.name}</span>
-                  <i data-lucide="arrow-right" class="gap-arrow"></i>
-                  <span class="skill-tag adjacent">${s.equivalentTo}</span>
-                </div>`;
-      }).join("");
+      const initials = cand.name.split(" ").map(n => n[0]).join("");
+      
+      let badgeClass = "badge-success";
+      let recText = "Strong Hire";
+      if (cand.overall_score < 90) {
+        badgeClass = "badge-warning";
+        recText = "Consider";
+      }
 
       card.innerHTML = `
-        <div class="gem-card-header">
-          <div class="gem-candidate-info">
-            <img src="${gem.avatar}" alt="Avatar" class="avatar-small">
-            <div>
-              <h4 style="font-size: 15px;">${gem.name}</h4>
-              <p style="font-size: 11px; color: var(--text-muted);">${gem.title}</p>
-            </div>
+        <div class="cc-header">
+          <div class="cc-avatar" style="background: linear-gradient(135deg, var(--brand-500), var(--brand-700));">${initials}</div>
+          <div class="cc-info">
+            <h4 class="cc-name">${cand.name}</h4>
+            <div class="cc-role">${cand.title}</div>
           </div>
-          <div class="gem-scores">
-            <span class="gem-score-badge">${gem.overall_score}%</span>
-            <span class="gem-score-label" style="display:block;">Match</span>
+          <div class="cc-prob-badge">${cand.overall_score}% Match</div>
+        </div>
+
+        <div class="cc-signals">
+          <div class="cc-signal-row">
+            <span class="cc-sig-label">Skill Adjacency</span>
+            <div class="cc-sig-track"><div class="cc-sig-fill" style="width: ${cand.skill_match_score}%; background: var(--primary);"></div></div>
+            <span class="cc-sig-val">${cand.skill_match_score}%</span>
+          </div>
+          <div class="cc-signal-row">
+            <span class="cc-sig-label">Growth Rate</span>
+            <div class="cc-sig-track"><div class="cc-sig-fill" style="width: ${cand.potential_score}%; background: var(--violet-500);"></div></div>
+            <span class="cc-sig-val">${cand.potential_score}%</span>
+          </div>
+          <div class="cc-signal-row">
+            <span class="cc-sig-label">Verification</span>
+            <div class="cc-sig-track"><div class="cc-sig-fill" style="width: ${cand.authenticity_score}%; background: var(--success);"></div></div>
+            <span class="cc-sig-val">${cand.authenticity_status === "verified" ? `${cand.authenticity_score}%` : "0%"}</span>
           </div>
         </div>
 
-        <div class="gem-expl-box">
-          <div class="gem-expl-title"><i data-lucide="brain" class="icon-tiny"></i> Cognitive Competency Match</div>
-          <p class="gem-expl-text">${gem.why_selected.substring(0, 140)}...</p>
-        </div>
-
-        <div class="qv-insights-section">
-          <h4 style="font-size: 11px;">Skill Equivalence Translation</h4>
-          <div style="display:flex; flex-direction:column; gap: 8px;">
-            ${skillRepl}
-          </div>
-        </div>
-
-        <div style="margin-top: auto; display: flex; justify-content: flex-end; gap: 10px;">
-          <a href="#recommendation" class="btn btn-primary btn-small" id="gem-rec-${gem.id}">Deep Explanation</a>
+        <div class="cc-footer">
+          <span class="badge ${badgeClass}">${recText}</span>
+          <span class="text-xs text-muted fw-semi">${cand.experience} Yrs Experience</span>
         </div>
       `;
-      
-      container.appendChild(card);
-      
-      document.getElementById(`gem-rec-${gem.id}`).addEventListener("click", () => {
-        currentRecCandidateId = gem.id;
+
+      card.addEventListener("click", () => {
+        activeCandidateId = cand.id;
+        window.location.hash = "#evaluate";
       });
+
+      gridContainer.appendChild(card);
     });
 
     lucide.createIcons();
   }
 
-  // --- VIEW 5: TALENT MARKETPLACE ---
-  function loadMarketplaceView() {
-    const searchInput = document.getElementById("market-search-input");
-    const container = document.getElementById("market-cards-container");
+  // 3. EVIDENCE PROFILE (EVALUATE FIT)
+  function loadEvaluateView() {
+    const cand = candidates.find(c => c.id === activeCandidateId) || candidates[0];
+    if (!cand) return;
+
+    // Evaluate Header details
+    document.getElementById("evaluate-title-hdr").textContent = `Evidence Profile: ${cand.name}`;
+
+    // Sidebar details
+    document.getElementById("eval-avatar").textContent = cand.name.split(" ").map(n => n[0]).join("");
+    document.getElementById("eval-name").textContent = cand.name;
+    document.getElementById("eval-title").textContent = cand.title;
+    document.getElementById("eval-prob-score").textContent = `${cand.overall_score}%`;
+    document.getElementById("eval-stat-exp").textContent = `${cand.experience} Years`;
     
-    // Bind search run trigger
-    document.getElementById("market-search-btn").onclick = () => {
-      loadMarketplaceView();
+    const verificationLabel = cand.authenticity_status === "verified" ? `Verified (${cand.authenticity_score}%)` : "Pending Challenge";
+    document.getElementById("eval-stat-auth").textContent = verificationLabel;
+    
+    // Set recommendation badge
+    const badgeEl = document.getElementById("eval-rec-badge");
+    badgeEl.className = "evidence-rec-badge";
+    if (cand.overall_score >= 90) {
+      badgeEl.classList.add("badge-strong-hire");
+      badgeEl.textContent = "Strong Hire";
+    } else {
+      badgeEl.classList.add("badge-consider");
+      badgeEl.textContent = "Consider";
+    }
+
+    // Load strengths & risks
+    const strengthsUl = document.getElementById("eval-strengths");
+    strengthsUl.innerHTML = "";
+    cand.strengths.forEach(s => {
+      const li = document.createElement("li");
+      li.textContent = s;
+      strengthsUl.appendChild(li);
+    });
+
+    const risksUl = document.getElementById("eval-risks");
+    risksUl.innerHTML = "";
+    cand.risks.forEach(r => {
+      const li = document.createElement("li");
+      li.textContent = r;
+      risksUl.appendChild(li);
+    });
+
+    // Advance to Pipeline button action
+    document.getElementById("eval-cta-pipeline").addEventListener("click", () => {
+      candidateStages[cand.id] = "assessment";
+      showToast(`${cand.name} advanced to Assessment phase!`);
+      window.location.hash = "#pipeline";
+    });
+
+    // Request Verification Challenge button action
+    document.getElementById("eval-cta-assess").addEventListener("click", () => {
+      cand.authenticity_status = "pending";
+      showToast(`Dynamic knowledge check request sent to ${cand.name}!`);
+      loadEvaluateView();
+    });
+
+    // Explainable AI text
+    document.getElementById("eval-why-selected").textContent = cand.why_selected;
+
+    // Explainability Progress Bars
+    animateProgressBar("eval-bar-skills", cand.skill_match_score, "eval-val-skills");
+    animateProgressBar("eval-bar-potential", cand.potential_score, "eval-val-potential");
+    animateProgressBar("eval-bar-auth", cand.authenticity_status === "verified" ? cand.authenticity_score : 0, "eval-val-auth", cand.authenticity_status === "verified" ? "%" : "Pending");
+
+    // 10 Dimensions details updates
+    document.getElementById("sig-val-skills").textContent = `${cand.skill_match_score}%`;
+    document.getElementById("sig-val-knowledge").textContent = cand.authenticity_status === "verified" ? `${cand.authenticity_score}%` : "Pending";
+    document.getElementById("sig-val-growth").textContent = `${cand.potential_score}%`;
+    document.getElementById("sig-val-projects").textContent = `${cand.alignment_score + 2}%`; // mapped proxy
+    document.getElementById("sig-val-experience").textContent = `${cand.experience_score}%`;
+    document.getElementById("sig-val-2y-role").textContent = cand.predicted_role_2yr;
+    document.getElementById("sig-val-2y-rationale").textContent = cand.prediction_rationale;
+    document.getElementById("sig-val-readiness").textContent = `${cand.readiness.technical}%`;
+    document.getElementById("sig-val-culture").textContent = `${cand.readiness.culture}%`;
+    document.getElementById("sig-val-comms").textContent = `${cand.readiness.communication}%`;
+    document.getElementById("sig-val-learning").textContent = `${cand.readiness.domain}%`;
+
+    // Render adjacent skills breakdown details sub-items
+    const skillsSub = document.getElementById("sig-skills-sub");
+    skillsSub.innerHTML = "";
+    cand.skills.slice(0, 3).forEach(s => {
+      const row = document.createElement("div");
+      row.className = "signal-sub-item";
+      row.innerHTML = `
+        <i data-lucide="${s.matchType === 'exact' ? 'check' : 'shuffle'}" style="color: var(--primary); width: 12px; height: 12px;"></i>
+        <span>${s.name} (${s.level}%)</span>
+      `;
+      skillsSub.appendChild(row);
+    });
+
+    // Verification check sub-items
+    const knowledgeSub = document.getElementById("sig-knowledge-sub");
+    knowledgeSub.innerHTML = "";
+    if (cand.authenticity_status === "verified") {
+      knowledgeSub.innerHTML = `
+        <div class="signal-sub-item">
+          <i data-lucide="check" style="color: var(--success); width: 12px; height: 12px;"></i>
+          <span>Topic: ${cand.authenticity_challenge.topic} Verified</span>
+        </div>
+        <div class="signal-sub-item">
+          <i data-lucide="shield" style="color: var(--success); width: 12px; height: 12px;"></i>
+          <span>Quiz score: ${cand.authenticity_challenge.score}% accuracy</span>
+        </div>
+      `;
+    } else {
+      knowledgeSub.innerHTML = `
+        <div class="signal-sub-item">
+          <i data-lucide="clock" style="color: var(--warning); width: 12px; height: 12px;"></i>
+          <span>Awaiting user challenge submission</span>
+        </div>
+      `;
+    }
+
+    // Candidate selection cycle triggers
+    const currentIdx = candidates.findIndex(c => c.id === cand.id);
+    document.getElementById("eval-prev-btn").onclick = () => {
+      const prevIdx = (currentIdx - 1 + candidates.length) % candidates.length;
+      activeCandidateId = candidates[prevIdx].id;
+      loadEvaluateView();
+    };
+    document.getElementById("eval-next-btn").onclick = () => {
+      const nextIdx = (currentIdx + 1) % candidates.length;
+      activeCandidateId = candidates[nextIdx].id;
+      loadEvaluateView();
     };
 
-    // Filter tags buttons
-    document.querySelectorAll(".tag-btn").forEach(btn => {
-      btn.onclick = (e) => {
-        const tag = btn.getAttribute("data-tag");
-        if (marketFilterTag === tag) {
-          marketFilterTag = null;
-          btn.classList.remove("active");
-        } else {
-          document.querySelectorAll(".tag-btn").forEach(b => b.classList.remove("active"));
-          marketFilterTag = tag;
-          btn.classList.add("active");
+    lucide.createIcons();
+  }
+
+  function animateProgressBar(barId, targetVal, labelId, suffix = "%") {
+    const bar = document.getElementById(barId);
+    const label = document.getElementById(labelId);
+    if (!bar) return;
+
+    bar.style.width = "0%";
+    setTimeout(() => {
+      bar.style.width = `${targetVal}%`;
+      if (label) {
+        label.textContent = targetVal === 0 && suffix === "Pending" ? "Pending" : `${targetVal}${suffix}`;
+      }
+    }, 150);
+  }
+
+  // 4. KANBAN HIRING PIPELINE
+  function loadPipelineView() {
+    const columns = [
+      { key: "applied", label: "Applied", color: "var(--primary)" },
+      { key: "screening", label: "Screening", color: "var(--brand-400)" },
+      { key: "assessment", label: "Assessment", color: "var(--violet-500)" },
+      { key: "interview", label: "Interview", color: "var(--warning)" },
+      { key: "offer", label: "Offer Extended", color: "var(--sky-500)" },
+      { key: "hired", label: "Hired", color: "var(--success)" }
+    ];
+
+    const board = document.getElementById("pipeline-board-container");
+    board.innerHTML = "";
+
+    columns.forEach(col => {
+      const colDiv = document.createElement("div");
+      colDiv.className = "pipeline-col";
+      colDiv.setAttribute("data-stage", col.key);
+
+      // Get candidates currently in this stage
+      const stageCandidates = candidates.filter(cand => candidateStages[cand.id] === col.key);
+
+      colDiv.innerHTML = `
+        <div class="pipeline-col-header">
+          <span class="pipeline-col-title">
+            <span class="pipeline-col-dot" style="background: ${col.color}"></span>
+            ${col.label}
+          </span>
+          <span class="pipeline-col-count" id="count-${col.key}">${stageCandidates.length}</span>
+        </div>
+        <div class="pipeline-cards" id="cards-${col.key}">
+          <!-- Cards appended dynamically -->
+        </div>
+      `;
+
+      const cardsContainer = colDiv.querySelector(".pipeline-cards");
+
+      stageCandidates.forEach(cand => {
+        const card = document.createElement("div");
+        card.className = "pipeline-card";
+        card.setAttribute("draggable", "true");
+        card.setAttribute("data-cand-id", cand.id);
+
+        card.innerHTML = `
+          <div class="pc-name">${cand.name}</div>
+          <div class="pc-role">${cand.title}</div>
+          <div class="pc-footer">
+            <span class="pc-score text-primary">${cand.overall_score}% Match</span>
+            <div class="pc-actions">
+              <div class="pc-action-btn view-eval-shortcut" data-tooltip="Evaluate candidate"><i data-lucide="eye"></i></div>
+            </div>
+          </div>
+        `;
+
+        card.querySelector(".view-eval-shortcut").addEventListener("click", (e) => {
+          e.stopPropagation();
+          activeCandidateId = cand.id;
+          window.location.hash = "#evaluate";
+        });
+
+        // HTML5 Drag Event Listeners
+        card.addEventListener("dragstart", (e) => {
+          card.classList.add("dragging");
+          e.dataTransfer.setData("text/plain", cand.id);
+        });
+
+        card.addEventListener("dragend", () => {
+          card.classList.remove("dragging");
+        });
+
+        cardsContainer.appendChild(card);
+      });
+
+      // Drag over column container triggers
+      cardsContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        colDiv.classList.add("drag-over");
+      });
+
+      cardsContainer.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        colDiv.classList.add("drag-over");
+      });
+
+      cardsContainer.addEventListener("dragleave", () => {
+        colDiv.classList.remove("drag-over");
+      });
+
+      cardsContainer.addEventListener("drop", (e) => {
+        e.preventDefault();
+        colDiv.classList.remove("drag-over");
+        const candId = e.dataTransfer.getData("text/plain");
+        if (candId) {
+          candidateStages[candId] = col.key;
+          showToast(`Moved candidate to ${col.label}`);
+          loadPipelineView(); // Re-render instantly
         }
-        loadMarketplaceView();
+      });
+
+      board.appendChild(colDiv);
+    });
+
+    lucide.createIcons();
+  }
+
+  // 5. GROW TALENT (HIGH POTENTIAL)
+  function loadGrowView() {
+    // Tab Button Handlers
+    const tabBtns = document.querySelectorAll(".tabs-nav .tab-btn");
+    const tabPanels = document.querySelectorAll(".grow-tab-content");
+
+    tabBtns.forEach(btn => {
+      btn.onclick = () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        tabPanels.forEach(p => p.classList.add("hidden"));
+        
+        btn.classList.add("active");
+        const targetId = `grow-${btn.getAttribute("data-grow-tab")}`;
+        document.getElementById(targetId).classList.remove("hidden");
+        activeGrowTab = btn.getAttribute("data-grow-tab");
       };
     });
 
-    let pool = [...candidates];
-    const query = searchInput.value.toLowerCase();
+    // Populate High Potential Candidates Grid
+    const highPotGrid = document.getElementById("high-potential-grid-container");
+    highPotGrid.innerHTML = "";
 
-    // Query filters
-    if (query !== "") {
-      pool = pool.filter(c => 
-        c.name.toLowerCase().includes(query) || 
-        c.title.toLowerCase().includes(query) ||
-        c.skills.some(s => s.name.toLowerCase().includes(query))
-      );
-    }
+    const potentialCandidates = candidates.filter(c => c.categories.includes("high_potential"));
 
-    // Tag filter mapping
-    if (marketFilterTag) {
-      if (marketFilterTag === "Fast Learners") pool = pool.filter(c => c.potential_score >= 90);
-      if (marketFilterTag === "High Intent") pool = pool.filter(c => c.intent_score >= 90);
-      if (marketFilterTag === "Hidden Gems") pool = pool.filter(c => c.categories.includes("hidden_gem"));
-      if (marketFilterTag === "Future Leaders") pool = pool.filter(c => c.categories.includes("future_leader"));
-    }
-
-    document.getElementById("market-results-count").textContent = `Showing ${pool.length} Candidates`;
-    container.innerHTML = "";
-
-    pool.forEach(c => {
+    potentialCandidates.forEach(cand => {
       const card = document.createElement("div");
-      card.className = "market-card glass-card";
-      
-      const skillsHtml = c.skills.slice(0, 3).map(s => {
-        return `<span class="skill-tag">${s.name}</span>`;
-      }).join("");
+      card.className = "high-potential-card";
+      const initials = cand.name.split(" ").map(n => n[0]).join("");
 
       card.innerHTML = `
-        <div class="market-profile-row">
-          <img src="${c.avatar}" alt="Avatar" class="avatar-large">
+        <div class="hpc-header">
+          <div class="hpc-avatar" style="background: linear-gradient(135deg, var(--violet-500), var(--brand-700));">${initials}</div>
           <div>
-            <h4 style="font-size: 16px;">${c.name}</h4>
-            <p style="font-size: 12px; color: var(--text-muted);">${c.title}</p>
+            <h4 class="hpc-name">${cand.name}</h4>
+            <span class="hpc-role">${cand.title}</span>
+          </div>
+          <span class="hpc-gem-badge">Growth Profile</span>
+        </div>
+
+        <div class="hpc-metrics">
+          <div class="hpc-metric-row">
+            <span class="hpc-metric-label">True Potential</span>
+            <div class="hpc-metric-bar"><div class="hpc-metric-fill" style="width: ${cand.potential_score}%; background: var(--violet-500);"></div></div>
+            <span class="hpc-metric-val text-primary">${cand.potential_score}%</span>
+          </div>
+          <div class="hpc-metric-row">
+            <span class="hpc-metric-label">Learning Vel.</span>
+            <div class="hpc-metric-bar"><div class="hpc-metric-fill" style="width: ${cand.readiness.domain}%; background: var(--success);"></div></div>
+            <span class="hpc-metric-val text-success">${cand.readiness.domain}%</span>
+          </div>
+          <div class="hpc-metric-row">
+            <span class="hpc-metric-label">Match Probability</span>
+            <div class="hpc-metric-bar"><div class="hpc-metric-fill" style="width: ${cand.overall_score}%; background: var(--primary);"></div></div>
+            <span class="hpc-metric-val text-primary">${cand.overall_score}%</span>
           </div>
         </div>
 
-        <div class="market-metrics">
-          <div class="market-metric-box">
-            <span class="label">Potential</span>
-            <span class="val text-purple">${c.potential_score}</span>
-          </div>
-          <div class="market-metric-box">
-            <span class="label">Intent</span>
-            <span class="val text-cyan">${c.intent_score}</span>
-          </div>
-        </div>
-
-        <div>
-          <h5 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Skills Preview</h5>
-          <div class="skills-wrap">${skillsHtml}</div>
-        </div>
-
-        <div style="margin-top: auto; display: flex; gap: 8px;">
-          <a href="#recommendation" class="btn btn-secondary btn-small flex-grow" id="market-rec-${c.id}">View Match</a>
-          <a href="#dna" class="btn btn-outline btn-small" id="market-dna-${c.id}" title="DNA Graph"><i data-lucide="fingerprint" class="icon-tiny"></i></a>
+        <div class="hpc-insight">
+          <strong>Explainable Rationale:</strong> ${cand.why_selected.substring(0, 140)}...
         </div>
       `;
-      container.appendChild(card);
 
-      document.getElementById(`market-rec-${c.id}`).addEventListener("click", () => {
-        currentRecCandidateId = c.id;
+      card.addEventListener("click", () => {
+        activeCandidateId = cand.id;
+        window.location.hash = "#evaluate";
       });
-      document.getElementById(`market-dna-${c.id}`).addEventListener("click", () => {
-        currentCandidateDnaId = c.id;
-      });
+
+      highPotGrid.appendChild(card);
     });
 
     lucide.createIcons();
   }
 
-  // --- VIEW 6: FUTURE TALENT PIPELINE ---
-  function loadPipelineView() {
-    const pipelineFrontend = document.getElementById("pipeline-frontend-fullstack");
-    const pipelineBackend = document.getElementById("pipeline-backend-architect");
-    const pipelineAI = document.getElementById("pipeline-engineer-ai");
-
-    pipelineFrontend.innerHTML = "";
-    pipelineBackend.innerHTML = "";
-    pipelineAI.innerHTML = "";
-
-    candidates.forEach(c => {
-      const card = document.createElement("div");
-      card.className = "pipeline-item-card";
-      
-      card.innerHTML = `
-        <div class="pipeline-c-info">
-          <img src="${c.avatar}" alt="Avatar" class="avatar-small">
-          <div>
-            <h4 style="font-size: 14px;">${c.name}</h4>
-            <span style="font-size: 10px; color: var(--text-muted);">${c.title}</span>
-          </div>
-        </div>
-
-        <div class="pipeline-trajectory">
-          <div class="trajectory-path">
-            <strong>Current:</strong> <span>${c.title}</span>
-          </div>
-          <div style="text-align: center; margin: 4px 0;"><i data-lucide="arrow-down-right" class="trajectory-arrow icon-tiny"></i></div>
-          <div class="trajectory-path">
-            <strong>Predict:</strong> <span class="text-purple">${c.predicted_role_2yr}</span>
-          </div>
-        </div>
-
-        <div class="pipeline-tagline">
-          <strong>Rationale:</strong> ${c.prediction_rationale.substring(0, 80)}...
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-          <span style="font-size: 10px; color: var(--text-muted);">Conf: <strong class="text-purple">${c.prediction_confidence}</strong></span>
-          <a href="#recommendation" class="btn btn-secondary btn-small" id="pipe-rec-${c.id}" style="padding: 4px 8px; font-size: 10px;">Explain Arc</a>
-        </div>
-      `;
-
-      // Distribute candidates to columns based on target prediction profile
-      if (c.predicted_role_2yr.includes("UI") || c.predicted_role_2yr.includes("Frontend") || c.predicted_role_2yr.includes("Full Stack")) {
-        pipelineFrontend.appendChild(card);
-      } else if (c.predicted_role_2yr.includes("Infrastructure") || c.predicted_role_2yr.includes("Backend") || c.predicted_role_2yr.includes("Operations")) {
-        pipelineBackend.appendChild(card);
-      } else {
-        pipelineAI.appendChild(card);
-      }
-
-      document.getElementById(`pipe-rec-${c.id}`).addEventListener("click", () => {
-        currentRecCandidateId = c.id;
-      });
-    });
-
-    lucide.createIcons();
-  }
-
-  // --- VIEW 7: CANDIDATE DNA VISUALIZATION ---
-  function loadCandidateDnaView() {
-    const listContainer = document.getElementById("dna-candidates-selection");
-    listContainer.innerHTML = "";
-
-    candidates.forEach(c => {
-      const item = document.createElement("div");
-      item.className = `dna-sel-item ${c.id === currentCandidateDnaId ? "selected" : ""}`;
-      item.addEventListener("click", () => {
-        currentCandidateDnaId = c.id;
-        loadCandidateDnaView();
-      });
-
-      item.innerHTML = `
-        <img src="${c.avatar}" alt="Avatar" class="avatar-small">
-        <div style="display:flex; flex-direction:column; overflow:hidden;">
-          <span style="font-size:13px; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${c.name}</span>
-          <span style="font-size:10px; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${c.title}</span>
-        </div>
-      `;
-      listContainer.appendChild(item);
-    });
-
-    const activeCand = candidates.find(c => c.id === currentCandidateDnaId) || candidates[0];
-    if (!activeCand) return;
-
-    // Update profiles details
-    document.getElementById("dna-avatar").src = activeCand.avatar;
-    document.getElementById("dna-name").textContent = activeCand.name;
-    document.getElementById("dna-title").textContent = `${activeCand.title} • ${activeCand.experience} Yrs Exp`;
-    document.getElementById("dna-potential-score").textContent = activeCand.potential_score;
-    document.getElementById("dna-intent-score").textContent = activeCand.intent_score;
-
-    // Generate Explanations list
-    const explContainer = document.getElementById("dna-traits-explanation");
-    explContainer.innerHTML = `
-      <div class="dna-trait-card">
-        <h4>🧠 Learning Agility (${activeCand.potential_score})</h4>
-        <p>Measured rate of skill transition, certification logs, and complexity in new repositories.</p>
-      </div>
-      <div class="dna-trait-card">
-        <h4>🎯 High Intent (${activeCand.intent_score})</h4>
-        <p>Continuous commitment to technology domains verified by hackathons and open-source updates.</p>
-      </div>
-      <div class="dna-trait-card">
-        <h4>🤝 Collaboration Index (${activeCand.readiness.communication})</h4>
-        <p>Predicted alignment with community architectures and cross-functional task matrices.</p>
-      </div>
-    `;
-
-    // Render Radar Chart
-    const canvas = document.getElementById("candidateDnaChart");
-    if (dnaChartInstance) {
-      dnaChartInstance.destroy();
-    }
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    const chartTextColor = isLight ? "#0f172a" : "#f3f4f6";
-    const chartTextMutedColor = isLight ? "#475569" : "#9ca3af";
-    const chartGridColor = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
-
-    dnaChartInstance = new Chart(canvas, {
-      type: "radar",
-      data: {
-        labels: [
-          "Technical Strength",
-          "Leadership Potential",
-          "Learning Agility",
-          "Collaboration Score",
-          "Innovation Score",
-          "Intent Score",
-          "Growth Potential"
-        ],
-        datasets: [{
-          label: `${activeCand.name} DNA Index`,
-          data: [
-            activeCand.skill_match_score,
-            activeCand.alignment_score - 5,
-            activeCand.potential_score,
-            activeCand.readiness.communication,
-            activeCand.alignment_score + 2,
-            activeCand.intent_score,
-            (activeCand.potential_score + activeCand.overall_score) / 2
-          ],
-          backgroundColor: "rgba(6, 182, 212, 0.2)",
-          borderColor: "#06b6d4",
-          pointBackgroundColor: "#06b6d4",
-          pointBorderColor: "#fff",
-          pointHoverBackgroundColor: "#fff",
-          pointHoverBorderColor: "#06b6d4"
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: chartTextColor }
-          }
-        },
-        scales: {
-          r: {
-            angleLines: { color: chartGridColor },
-            grid: { color: chartGridColor },
-            pointLabels: { color: chartTextMutedColor, font: { size: 10 } },
-            ticks: { display: false },
-            suggestedMin: 50,
-            suggestedMax: 100
-          }
-        }
-      }
-    });
-  }
-
-  // --- VIEW 8: AI INSIGHTS ---
-  function loadInsightsView() {
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    const chartTextColor = isLight ? "#0f172a" : "#f3f4f6";
-    const chartTextMutedColor = isLight ? "#475569" : "#9ca3af";
-    const chartGridColor = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
-
-    // 1. Match distribution chart
-    const distributionCanvas = document.getElementById("matchDistributionChart");
-    if (distributionChartInstance) distributionChartInstance.destroy();
-    
-    distributionChartInstance = new Chart(distributionCanvas, {
+  // 6. ANALYTICS (CHART.JS)
+  function loadAnalyticsView() {
+    // 1. Funnel Chart
+    const ctxFunnel = document.getElementById("chart-funnel").getContext("2d");
+    if (chartFunnelInstance) chartFunnelInstance.destroy();
+    chartFunnelInstance = new Chart(ctxFunnel, {
       type: "bar",
       data: {
-        labels: ["60-70%", "70-80%", "80-90%", "90-100%"],
+        labels: ["Sourced", "Screening", "Assessments", "Interviews", "Offers", "Hired"],
         datasets: [{
-          label: "Number of Candidates",
-          data: [142, 532, 680, 128],
-          backgroundColor: "rgba(168, 85, 247, 0.4)",
-          borderColor: "#a855f7",
-          borderWidth: 1
+          label: "Volume",
+          data: [142, 85, 42, 24, 8, 6],
+          backgroundColor: "#6366F1",
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } } }
+      }
+    });
+
+    // 2. Time-to-Hire Chart
+    const ctxTime = document.getElementById("chart-time").getContext("2d");
+    if (chartTimeInstance) chartTimeInstance.destroy();
+    chartTimeInstance = new Chart(ctxTime, {
+      type: "line",
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [{
+          label: "Days to Fill",
+          data: [28, 25, 22, 19, 18, 18],
+          borderColor: "#10B981",
+          backgroundColor: "rgba(16,185,129,0.1)",
+          fill: true,
+          tension: 0.3
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: { grid: { color: chartGridColor }, ticks: { color: chartTextMutedColor } },
-          x: { grid: { display: false }, ticks: { color: chartTextMutedColor } }
-        }
+        plugins: { legend: { display: false } },
+        scales: { y: { min: 10 } }
       }
     });
 
-    // 2. Success prediction chart
-    const successCanvas = document.getElementById("successPredictionChart");
-    if (predictionChartInstance) predictionChartInstance.destroy();
-
-    predictionChartInstance = new Chart(successCanvas, {
-      type: "line",
+    // 3. Sourcing Channels
+    const ctxSources = document.getElementById("chart-sources").getContext("2d");
+    if (chartSourcesInstance) chartSourcesInstance.destroy();
+    chartSourcesInstance = new Chart(ctxSources, {
+      type: "doughnut",
       data: {
-        labels: ["Q1", "Q2", "Q3", "Q4"],
+        labels: ["LinkedIn Sourced", "Organic Applied", "Referral", "HireMind Sift"],
+        datasets: [{
+          data: [45, 20, 15, 20],
+          backgroundColor: ["#6366F1", "#38BDF8", "#F59E0B", "#10B981"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } } }
+      }
+    });
+
+    // 4. AI Accuracy Chart
+    const ctxAccuracy = document.getElementById("chart-accuracy").getContext("2d");
+    if (chartAccuracyInstance) chartAccuracyInstance.destroy();
+    chartAccuracyInstance = new Chart(ctxAccuracy, {
+      type: "radar",
+      data: {
+        labels: ["Coding Skills", "Culture Fit", "Tech Adaptability", "Retention Pred.", "Growth Velocity"],
         datasets: [
           {
-            label: "Predicted High Potential",
-            data: [82, 85, 89, 94],
-            borderColor: "#06b6d4",
-            backgroundColor: "rgba(6, 182, 212, 0.05)",
-            tension: 0.3,
-            fill: true
+            label: "HireMind AI Prediction",
+            data: [92, 88, 95, 90, 94],
+            borderColor: "#6366F1",
+            backgroundColor: "rgba(99,102,241,0.15)"
           },
           {
-            label: "Actual Success Rate",
-            data: [79, 84, 88, 91],
-            borderColor: "#10b981",
-            backgroundColor: "transparent",
-            tension: 0.3
+            label: "Traditional Screening",
+            data: [70, 75, 50, 65, 60],
+            borderColor: "#94A3B8",
+            backgroundColor: "rgba(148,163,184,0.15)"
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: chartTextMutedColor } }
-        },
-        scales: {
-          y: { grid: { color: chartGridColor }, ticks: { color: chartTextMutedColor } },
-          x: { grid: { display: false }, ticks: { color: chartTextMutedColor } }
-        }
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } } },
+        scales: { r: { angleLines: { display: false }, suggestedMin: 40 } }
       }
     });
-
-    // 3. Render Skill Adjacency Graph Nodes
-    const adjGrid = document.getElementById("skill-adjacency-grid");
-    adjGrid.innerHTML = "";
-
-    // Simulated node placements
-    const nodes = [
-      { id: "n1", name: "AWS Cloud", class: "core", x: 45, y: 45 },
-      { id: "n2", name: "GCP Services", class: "match", x: 15, y: 25 },
-      { id: "n3", name: "Azure Cloud", class: "adjacent", x: 75, y: 20 },
-      { id: "n4", name: "React Framework", class: "core", x: 50, y: 75 },
-      { id: "n5", name: "Vue.js Layouts", class: "match", x: 20, y: 80 },
-      { id: "n6", name: "Svelte Component", class: "adjacent", x: 80, y: 70 }
-    ];
-
-    nodes.forEach(n => {
-      const nodeEl = document.createElement("div");
-      nodeEl.className = `adj-node ${n.class}`;
-      nodeEl.style.left = `${n.x}%`;
-      nodeEl.style.top = `${n.y}%`;
-      
-      let icon = "cloud";
-      if (n.name.includes("React") || n.name.includes("Vue") || n.name.includes("Svelte")) icon = "layout";
-      
-      nodeEl.innerHTML = `<i data-lucide="${icon}" class="icon-tiny"></i> ${n.name}`;
-      adjGrid.appendChild(nodeEl);
-    });
-
-    // Render connection lines SVG
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "adj-svg-connections");
-    
-    // Add connection lines from Core to match/adjacents
-    const lines = [
-      { from: nodes[0], to: nodes[1], color: "rgba(6, 182, 212, 0.4)" },
-      { from: nodes[0], to: nodes[2], color: "rgba(6, 182, 212, 0.3)" },
-      { from: nodes[3], to: nodes[4], color: "rgba(168, 85, 247, 0.4)" },
-      { from: nodes[3], to: nodes[5], color: "rgba(168, 85, 247, 0.3)" }
-    ];
-
-    setTimeout(() => {
-      lines.forEach(l => {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        const fromEl = adjGrid.querySelector(`.adj-node:contains(${l.from.name})`) || adjGrid.children[nodes.indexOf(l.from)];
-        const toEl = adjGrid.querySelector(`.adj-node:contains(${l.to.name})`) || adjGrid.children[nodes.indexOf(l.to)];
-        
-        if (fromEl && toEl) {
-          const fromRect = fromEl.getBoundingClientRect();
-          const toRect = toEl.getBoundingClientRect();
-          const gridRect = adjGrid.getBoundingClientRect();
-
-          const x1 = fromRect.left - gridRect.left + fromRect.width / 2;
-          const y1 = fromRect.top - gridRect.top + fromRect.height / 2;
-          const x2 = toRect.left - gridRect.left + toRect.width / 2;
-          const y2 = toRect.top - gridRect.top + toRect.height / 2;
-
-          line.setAttribute("x1", x1);
-          line.setAttribute("y1", y1);
-          line.setAttribute("x2", x2);
-          line.setAttribute("y2", y2);
-          line.setAttribute("stroke", l.color);
-          line.setAttribute("stroke-width", "1.5");
-          line.setAttribute("stroke-dasharray", "4 4");
-          svg.appendChild(line);
-        }
-      });
-      adjGrid.appendChild(svg);
-    }, 100);
-
-    lucide.createIcons();
   }
 
-  // --- VIEW 9: NOTIFICATIONS CENTER ---
-  function loadNotificationsView() {
-    const container = document.getElementById("notifications-list-container");
-    container.innerHTML = "";
+  // 7. CANDIDATE WORKSPACE DASHBOARD
+  function loadCandidateDashboardView() {
+    const oppsList = document.getElementById("candidate-opportunities-list");
+    oppsList.innerHTML = "";
 
-    document.getElementById("mark-all-read").onclick = () => {
-      initialNotifications.forEach(n => n.unread = false);
-      updateNotifBadge();
-      loadNotificationsView();
-    };
+    // Candidate mode displays Helena Rostova profile defaults
+    const candidateData = candidates[0]; // Helena
+    document.getElementById("cand-dash-name").textContent = candidateData.name;
+    document.getElementById("cand-dash-score").textContent = candidateData.overall_score;
 
-    initialNotifications.forEach(n => {
-      const item = document.createElement("div");
-      item.className = `notification-item ${n.unread ? 'unread' : ''}`;
+    // Populate active opportunities
+    candidateData.active_opportunities.forEach(opp => {
+      const card = document.createElement("div");
+      card.className = "job-card";
       
-      let icon = "bell";
-      let bg = "bg-blue-tint text-blue";
-      if (n.type === "rematch") { icon = "refresh-cw"; bg = "bg-green-tint text-green"; }
-      if (n.type === "growth") { icon = "trending-up"; bg = "bg-purple-tint text-purple"; }
-      if (n.type === "jd") { icon = "file-text"; bg = "bg-cyan-tint text-cyan"; }
+      const compLogo = opp.role.split(" ").map(w => w[0]).join("");
 
-      item.innerHTML = `
-        <div class="notif-icon-circle ${bg}">
-          <i data-lucide="${icon}"></i>
+      card.innerHTML = `
+        <div class="job-company-logo">${compLogo}</div>
+        <div class="job-info">
+          <h4 class="job-title">${opp.role}</h4>
+          <p class="job-company">HireMind AI Client Sourcing Portal</p>
+          <div class="job-meta">
+            <div class="job-meta-item"><i data-lucide="briefcase"></i><span>Full Time</span></div>
+            <div class="job-meta-item"><i data-lucide="map-pin"></i><span>Remote</span></div>
+          </div>
         </div>
-        <div class="notif-content">
-          <div class="notif-title-row">
-            <span class="notif-title">${n.title}</span>
-            <span class="notif-time">${n.time}</span>
-          </div>
-          <p class="notif-body">${n.body}</p>
-          <div class="notif-action-row">
-            <a href="${n.actionLink}" class="btn btn-secondary btn-small" id="notif-act-${n.id}">View details</a>
-          </div>
+        <div class="job-match-badge">${opp.match}% Fit</div>
+      `;
+
+      card.addEventListener("click", () => {
+        activeCandidateId = candidateData.id;
+        window.location.hash = "#evaluate";
+      });
+
+      oppsList.appendChild(card);
+    });
+
+    // Populate growth roadmap
+    const roadmapList = document.getElementById("cand-roadmap-list");
+    roadmapList.innerHTML = "";
+    
+    candidateData.learning_roadmap.timeline.forEach((item, idx) => {
+      const box = document.createElement("div");
+      box.className = "learning-card";
+      
+      let badgeTheme = item.completed ? "badge-success" : "badge-outline";
+      let statusText = item.completed ? "Completed" : "In Progress";
+
+      box.innerHTML = `
+        <div class="flex justify-between items-center lc-badge">
+          <span class="badge ${badgeTheme}">${statusText}</span>
+          <span class="text-xs text-faint font-semibold">${item.term} Goal</span>
+        </div>
+        <h4 class="lc-title">${item.goal}</h4>
+        <p class="lc-desc">Closing technological gap vectors to achieve principal engineering milestones.</p>
+        <div class="lc-meta">
+          <div class="lc-meta-item"><i data-lucide="book-open"></i><span>Core Curriculum</span></div>
+          <div class="lc-meta-item"><i data-lucide="award"></i><span>Verified Badge</span></div>
         </div>
       `;
-      container.appendChild(item);
-
-      document.getElementById(`notif-act-${n.id}`).onclick = () => {
-        n.unread = false;
-        updateNotifBadge();
-      };
+      roadmapList.appendChild(box);
     });
 
-    lucide.createIcons();
-  }
-
-  // --- VIEW 10: EXPLAINABLE AI MATRIX ---
-  function loadExplainableAiView() {
-    const cand = candidates.find(c => c.id === currentRecCandidateId) || candidates[0];
-    if (!cand) return;
-
-    // Headings
-    document.getElementById("rec-avatar").src = cand.avatar;
-    document.getElementById("rec-name").textContent = cand.name;
-    document.getElementById("rec-role-sub").textContent = `Ecosystem Match Matrix for: ${cand.title}`;
-    
-    // Overall match score circle
-    document.getElementById("rec-score-value").textContent = cand.overall_score;
-    const circle = document.getElementById("rec-score-ring");
-    const radius = circle.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    circle.style.strokeDasharray = `${circumference} ${circumference}`;
-    const offset = circumference - (cand.overall_score / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
-
-    // Gem check
-    const isGem = cand.categories.includes("hidden_gem");
-    const gemBadge = document.getElementById("rec-gem-badge");
-    if (cand.honeypot_risk) {
-      gemBadge.className = "badge animate-pulse";
-      gemBadge.style.background = "var(--orange)";
-      gemBadge.innerHTML = `<i data-lucide="alert-triangle" class="icon-tiny"></i> HONEYPOT PROFILE FLAG`;
-    } else if (isGem) {
-      gemBadge.className = "badge badge-purple animate-pulse";
-      gemBadge.style.background = "";
-      gemBadge.innerHTML = `<i data-lucide="gem" class="icon-tiny"></i> HIDDEN GEM MATCH`;
-    } else {
-      gemBadge.className = "badge badge-cyan";
-      gemBadge.style.background = "";
-      gemBadge.innerHTML = `<i data-lucide="user" class="icon-tiny"></i> REGULAR MATCH`;
-    }
-
-    // Why selected body
-    document.getElementById("rec-why-selected").textContent = cand.why_selected;
-
-    // Strengths list
-    const strengthsUl = document.getElementById("rec-strengths-list");
-    strengthsUl.innerHTML = cand.strengths.map(s => `<li>${s}</li>`).join("");
-
-    // Risks list
-    const risksUl = document.getElementById("rec-risks-list");
-    risksUl.innerHTML = cand.risks.map(r => `<li>${r}</li>`).join("");
-
-    // Skill Gap & Adjacency Translation
-    const gapAnalysisDiv = document.getElementById("rec-gap-analysis");
-    gapAnalysisDiv.innerHTML = "";
-    
-    cand.skills.forEach(s => {
-      if (s.matchType === "adjacent") {
-        gapAnalysisDiv.innerHTML += `
-          <div class="gap-item">
-            <div class="gap-skill-names">
-              <strong>${s.name} (Possessed skill)</strong>
-              <span class="text-purple">Adjacency Level: 92%</span>
-            </div>
-            <div class="adjacent-chain">
-              <span class="skill-tag match">${s.name} (${s.level})</span>
-              <i data-lucide="arrow-right-left" class="gap-arrow icon-tiny"></i>
-              <span class="skill-tag adjacent">${s.equivalentTo} (Required skill)</span>
-            </div>
-          </div>
-        `;
-      }
-      if (s.matchType === "gap") {
-        gapAnalysisDiv.innerHTML += `
-          <div class="gap-item">
-            <div class="gap-skill-names">
-              <strong>${s.name} (Critical Skill Gap)</strong>
-              <span class="text-orange">Required ramp-up: High</span>
-            </div>
-            <div class="adjacent-chain">
-              <span class="skill-tag" style="background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.25); color: var(--orange);">Missing: ${s.name}</span>
-            </div>
-          </div>
-        `;
-      }
-    });
-
-    if (gapAnalysisDiv.innerHTML === "") {
-      gapAnalysisDiv.innerHTML = `<div style="color: var(--text-muted); font-size:12px;">Candidate fully satisfies all technical framework layers. No skill gaps identified.</div>`;
-    }
-
-    const hp = cand.hire_probability || {
-      qualified: (cand.candidate_dna?.technical_fit || cand.skill_match_score || 80) / 100,
-      available: (cand.candidate_dna?.experience_fit || cand.experience_score || 80) / 100,
-      engageable: (cand.candidate_dna?.career_trajectory || cand.potential_score || 85) / 100,
-      legitimate: cand.honeypot_risk ? 0.10 : (cand.candidate_dna?.behavioral_intent || cand.alignment_score || 90) / 100,
-      growth: (cand.candidate_dna?.credibility || 80) / 100,
-      scrappiness: (cand.candidate_dna?.hidden_gem_score || (cand.categories.includes("hidden_gem") ? 90 : 60)) / 100,
-      hire_score: cand.overall_score
-    };
-
-    const calculatedScore = Math.round(hp.qualified * hp.available * hp.engageable * hp.legitimate * hp.growth * hp.scrappiness * 100);
-    const finalScore = hp.hire_score || calculatedScore;
-
-    // Subscores progress bars replaced with Multiplicative Formula Display and deep-dive cards
-    const subscoresDiv = document.getElementById("rec-subscores");
-    subscoresDiv.innerHTML = `
-      <div class="prob-formula-display">
-        <div class="formula-title">Hire Probability Formula Execution</div>
-        <div class="formula-chain">
-          <span class="f-factor" title="P(Qualified)">P(Q): ${Math.round(hp.qualified*100)}%</span>
-          <span class="f-operator">×</span>
-          <span class="f-factor" title="P(Available)">P(A): ${Math.round(hp.available*100)}%</span>
-          <span class="f-operator">×</span>
-          <span class="f-factor" title="P(Engageable)">P(E): ${Math.round(hp.engageable*100)}%</span>
-          <span class="f-operator">×</span>
-          <span class="f-factor" title="P(Legitimate)" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--cyan)'};">P(L): ${Math.round(hp.legitimate*100)}%</span>
-          <span class="f-operator">×</span>
-          <span class="f-factor" title="P(Growth)">P(G): ${Math.round(hp.growth*100)}%</span>
-          <span class="f-operator">×</span>
-          <span class="f-factor" title="P(Scrappiness)">P(S): ${Math.round(hp.scrappiness*100)}%</span>
-          <span class="f-operator">=</span>
-          <span class="f-result" title="Final Score">${finalScore}%</span>
-        </div>
-      </div>
-
-      <div class="p-factor-grid">
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Qualified)</span>
-            <span class="factor-value">${Math.round(hp.qualified*100)}%</span>
-          </div>
-          <p class="factor-desc">Matches requirements of job description against candidate experience level and core competence tags.</p>
-        </div>
-
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Available)</span>
-            <span class="factor-value">${Math.round(hp.available*100)}%</span>
-          </div>
-          <p class="factor-desc">Tenure stability model and active search status signals from market data indicators.</p>
-        </div>
-
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Engageable)</span>
-            <span class="factor-value">${Math.round(hp.engageable*100)}%</span>
-          </div>
-          <p class="factor-desc">Likelihood of recruiter engagement based on response history and profile interaction telemetry.</p>
-        </div>
-
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Legitimate)</span>
-            <span class="factor-value" style="color: ${hp.legitimate < 0.15 ? 'var(--orange)' : 'var(--cyan)'};">${Math.round(hp.legitimate*100)}%</span>
-          </div>
-          <p class="factor-desc">${hp.legitimate < 0.15 ? 'CRITICAL: Suspicious anomalies detected in timeline / keywords.' : 'Authenticity verification and verification challenge results.'}</p>
-        </div>
-
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Growth)</span>
-            <span class="factor-value">${Math.round(hp.growth*100)}%</span>
-          </div>
-          <p class="factor-desc">Adaptive capacity, promotion velocity, and YoY skills expansion track record.</p>
-        </div>
-
-        <div class="p-factor-card">
-          <div class="factor-header">
-            <span class="factor-name">P(Scrappiness)</span>
-            <span class="factor-value">${Math.round(hp.scrappiness*100)}%</span>
-          </div>
-          <p class="factor-desc">Self-starting traits, open source work, hackathon participation, and side projects.</p>
-        </div>
-      </div>
-    `;
-
-    // 2-Year predictions
-    document.getElementById("rec-predicted-role").textContent = cand.predicted_role_2yr;
-    document.getElementById("rec-prediction-confidence").textContent = cand.prediction_confidence;
-    document.getElementById("rec-prediction-rationale").textContent = cand.prediction_rationale;
-
-    // Interview readiness predictors
-    const readinessDiv = document.getElementById("rec-readiness-metrics");
-    readinessDiv.innerHTML = `
-      <div class="subscore-item">
-        <div class="subscore-label-row"><span>Technical Readiness</span><strong>${cand.readiness.technical}%</strong></div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.readiness.technical}%; background: var(--blue);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row"><span>Communication Capability</span><strong>${cand.readiness.communication}%</strong></div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.readiness.communication}%; background: var(--cyan);"></div></div>
-      </div>
-      <div class="subscore-item">
-        <div class="subscore-label-row"><span>Domain Comprehension</span><strong>${cand.readiness.domain}%</strong></div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${cand.readiness.domain}%; background: var(--orange);"></div></div>
-      </div>
-    `;
-
-    // Bind action buttons
-    document.getElementById("rec-schedule-btn").onclick = () => {
-      alert(`Interview successfully requested for ${cand.name}! Email invitation dispatched.`);
-    };
-
-    document.getElementById("rec-pipeline-btn").onclick = () => {
-      alert(`${cand.name} pinned to long-term succession planning pipeline!`);
-    };
+    // Render verification checks UI
+    renderVerificationUI();
 
     lucide.createIcons();
   }
 
-  // --- V2 INTERACTIVE ECOSYSTEM FEATURES ---
-
-  function loadCandidateDashboardView() {
-    const cand = candidates.find(c => c.id === activeCandidateId) || candidates[0];
-    if (!cand) return;
-
-    // Opportunities
-    const oppList = document.getElementById("candidate-opp-list");
-    if (oppList) {
-      oppList.innerHTML = "";
-      cand.active_opportunities.forEach(opp => {
-        const item = document.createElement("div");
-        item.className = "opp-item-card";
-        
-        let statusClass = "review";
-        if (opp.status === "Pre-Screened" || opp.status === "Interview Scheduled") statusClass = "interview";
-        if (opp.status === "Stored in Talent Pool" || opp.status === "Nurturing Pipeline") statusClass = "nurture";
-        
-        item.innerHTML = `
-          <div class="opp-meta">
-            <h4>${opp.role}</h4>
-            <span>Match Probability: <strong class="text-cyan">${opp.match}%</strong></span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span class="opp-badge ${statusClass}">${opp.status}</span>
-            <button class="btn btn-secondary btn-small" id="cand-opp-view-btn-${opp.job_id}">View DNA Match</button>
-          </div>
-        `;
-        oppList.appendChild(item);
-
-        document.getElementById(`cand-opp-view-btn-${opp.job_id}`).onclick = () => {
-          currentRecCandidateId = cand.id;
-          window.location.hash = "#recommendation";
-        };
-      });
-    }
-
-    // Timeline Learning Roadmap (Second Chance AI)
-    const timeline = document.getElementById("candidate-roadmap-timeline");
-    if (timeline) {
-      timeline.innerHTML = "";
-      cand.learning_roadmap.timeline.forEach((step, idx) => {
-        const stepDiv = document.createElement("div");
-        stepDiv.className = `timeline-roadmap-step ${step.completed ? "completed" : ""}`;
-        stepDiv.id = `roadmap-step-${idx}`;
-        
-        // Let them click the step to simulate completing it!
-        stepDiv.style.cursor = step.completed ? "default" : "pointer";
-        
-        stepDiv.innerHTML = `
-          <div class="timeline-node-dot"></div>
-          <div class="timeline-step-content">
-            <h5>${step.goal}</h5>
-            <span>Target timeframe: ${step.term}</span>
-          </div>
-          <div>
-            ${step.completed 
-              ? `<i data-lucide="check" class="text-green" style="width:16px; height:16px;"></i>` 
-              : `<i data-lucide="circle" class="text-muted" style="width:16px; height:16px;"></i>`
-            }
-          </div>
-        `;
-        timeline.appendChild(stepDiv);
-
-        if (!step.completed) {
-          stepDiv.title = "Click to mark as completed and update your DNA!";
-          stepDiv.onclick = () => {
-            step.completed = true;
-            // Update scores!
-            cand.potential_score = Math.min(100, cand.potential_score + 2);
-            cand.overall_score = Math.min(100, cand.overall_score + 1);
-            cand.skill_match_score = Math.min(100, cand.skill_match_score + 2);
-            
-            // Show alert
-            alert(`Congratulations! You completed: "${step.goal}". Your Skill DNA and Match scores have been updated in real-time.`);
-            loadCandidateDashboardView();
-            loadDashboardView(); // sync recruiter widget
-          };
-        }
-      });
-    }
-
-    // Authenticity challenge box rendering
-    renderQuizWidget(cand);
-
-    // Prediction card details
-    const roleBadge = document.getElementById("cand-predicted-role-val");
-    if (roleBadge) roleBadge.textContent = cand.predicted_role_2yr;
-    
-    const confVal = document.getElementById("cand-predicted-conf-val");
-    if (confVal) confVal.textContent = cand.prediction_confidence;
-
-    const ratVal = document.getElementById("cand-prediction-rationale-val");
-    if (ratVal) ratVal.textContent = cand.prediction_rationale;
-
-    lucide.createIcons();
-  }
-
-  function renderQuizWidget(cand) {
-    const quizBody = document.getElementById("quiz-widget-body");
-    if (!quizBody) return;
+  // Verification Checks Quiz UI for Candidates
+  function renderVerificationUI() {
+    const container = document.getElementById("cand-verification-ui");
+    const cand = candidates[0]; // Helena
 
     if (cand.authenticity_status === "verified") {
-      quizBody.innerHTML = `
-        <div style="text-align:center; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px;">
-          <i data-lucide="shield-check" class="text-green" style="width:48px; height:48px;"></i>
-          <h4 style="margin:0; color:var(--green);">Claim Authenticity Verified</h4>
-          <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">
-            Your skill assertions in <strong>${cand.authenticity_challenge.topic}</strong> have been validated through our dynamic challenger.
-          </p>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-top:8px;">
-            <div class="quiz-stat-card">
-              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Authenticity Score</span>
-              <strong style="font-size:16px; color:var(--cyan);">${cand.authenticity_score}%</strong>
-            </div>
-            <div class="quiz-stat-card">
-              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; display:block;">Knowledge Confidence</span>
-              <strong style="font-size:16px; color:var(--purple);">${cand.knowledge_confidence_score}%</strong>
-            </div>
-          </div>
+      container.innerHTML = `
+        <div class="hp-ai-rec" style="margin: 0; background: var(--green-50); border-color: var(--green-100);">
+          <i data-lucide="shield-check" style="color: var(--success);"></i>
+          <span style="color: var(--green-700); font-weight: 700;">Knowledge Claim Verified: React core concepts passed (Score: ${cand.authenticity_challenge.score}%).</span>
         </div>
       `;
       return;
     }
 
-    // Otherwise, we load the quiz status
-    if (cand.authenticity_challenge.questions_answered === 0) {
-      quizBody.innerHTML = `
-        <div style="text-align:center; padding:8px; display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; justify-content:center;"><i data-lucide="award" class="text-purple" style="width:36px; height:36px;"></i></div>
-          <h4 style="margin:0; font-size:14px;">Dynamic Verification Challenge</h4>
-          <p style="font-size:11px; color:var(--text-muted); line-height:1.4; margin:0;">
-            Based on your resume, our AI generated a challenge on <strong>${cand.authenticity_challenge.topic}</strong>. Answer these 3 adaptive questions.
-          </p>
-          <button class="btn btn-primary btn-small" id="start-auth-quiz-btn" style="margin-top:5px; width:100%;">Start Challenge</button>
-        </div>
-      `;
+    const quizQuestions = authenticityQuestionDb[quizActiveSkill];
+    if (!quizQuestions) return;
 
-      document.getElementById("start-auth-quiz-btn").onclick = () => {
-        cand.authenticity_challenge.questions_answered = 1;
-        quizQuestionIdx = 0;
-        quizCorrectAnswers = 0;
-        renderQuizWidget(cand);
-      };
-    } else {
-      // Quiz in progress
-      const questions = authenticityQuestionDb[cand.authenticity_challenge.topic];
-      const q = questions[quizQuestionIdx];
+    if (quizQuestionIdx >= quizQuestions.length) {
+      // Completed, calculate final score
+      const finalScore = Math.round((quizCorrectCount / quizQuestions.length) * 100);
+      cand.authenticity_status = "verified";
+      cand.authenticity_score = finalScore;
+      cand.authenticity_challenge.score = finalScore;
+      cand.authenticity_challenge.questions_answered = quizQuestions.length;
 
-      let optionsHtml = "";
-      q.options.forEach((opt, oIdx) => {
-        optionsHtml += `<button class="quiz-option-btn" data-idx="${oIdx}">${opt}</button>`;
-      });
-
-      quizBody.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
-            <span>Topic: ${cand.authenticity_challenge.topic}</span>
-            <span>Question ${quizQuestionIdx + 1} of 3</span>
+      container.innerHTML = `
+        <div style="text-align: center; padding: 12px 0;">
+          <div class="score-ring" style="margin: 0 auto 16px; border-color: var(--success); box-shadow: 0 0 0 6px var(--green-100);">
+            <span class="score-ring-value" style="color: var(--success);">${finalScore}%</span>
+            <span class="score-ring-label">Accuracy</span>
           </div>
-          <div class="quiz-question-header">${q.question}</div>
-          <div class="quiz-options-list">${optionsHtml}</div>
-          <div class="quiz-feedback-box hidden" id="quiz-feedback"></div>
-          <button class="btn btn-secondary btn-small hidden" id="quiz-next-btn" style="width:100%;">Next Question</button>
+          <h4 class="fw-bold text-sm" style="color: var(--success); margin-bottom: 8px;">Assessment Completed!</h4>
+          <p class="text-xs text-muted" style="margin-bottom: 12px;">Your verified score has been compiled and added to your Evidence Profile.</p>
+          <button class="btn btn-secondary btn-sm" id="btn-restart-quiz">Verify Another Skill</button>
         </div>
       `;
 
-      // Option button clicks
-      const optBtns = quizBody.querySelectorAll(".quiz-option-btn");
-      const feedbackBox = quizBody.querySelector("#quiz-feedback");
-      const nextBtn = quizBody.querySelector("#quiz-next-btn");
+      document.getElementById("btn-restart-quiz").onclick = () => {
+        quizQuestionIdx = 0;
+        quizCorrectCount = 0;
+        cand.authenticity_status = "pending";
+        renderVerificationUI();
+      };
+      
+      showToast(`Skill verification challenge complete. Score: ${finalScore}%`);
+      return;
+    }
 
-      optBtns.forEach(btn => {
-        btn.onclick = () => {
-          // disable all
-          optBtns.forEach(b => b.disabled = true);
-          
-          const chosen = parseInt(btn.getAttribute("data-idx"));
-          if (chosen === q.correct) {
-            btn.classList.add("correct-choice");
-            quizCorrectAnswers++;
-            feedbackBox.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
-            feedbackBox.style.borderColor = "var(--green)";
-            feedbackBox.style.color = "var(--green)";
-          } else {
-            btn.classList.add("wrong-choice");
-            optBtns[q.correct].classList.add("correct-choice");
-            feedbackBox.innerHTML = `<strong>Incorrect.</strong> ${q.explanation}`;
-            feedbackBox.style.borderColor = "#ef4444";
-            feedbackBox.style.color = "#ef4444";
-          }
-          feedbackBox.classList.remove("hidden");
-          nextBtn.classList.remove("hidden");
-        };
-      });
+    // Render Question
+    const q = quizQuestions[quizQuestionIdx];
+    let optionsHtml = "";
+    q.options.forEach((opt, idx) => {
+      optionsHtml += `
+        <button class="btn btn-secondary w-full select-option-btn" data-idx="${idx}" style="justify-content: flex-start; text-align: left; height: auto; padding: 8px 12px; margin-bottom: 6px; white-space: normal; line-height: 1.4;">
+          ${idx + 1}. ${opt}
+        </button>
+      `;
+    });
 
-      nextBtn.onclick = () => {
+    container.innerHTML = `
+      <div class="flex justify-between items-center" style="margin-bottom: 8px;">
+        <span class="badge badge-primary">Topic: ${quizActiveSkill}</span>
+        <span class="text-xs text-faint">Question ${quizQuestionIdx + 1} of ${quizQuestions.length}</span>
+      </div>
+      <h4 class="fw-bold text-sm" style="color: var(--text); margin-bottom: 12px; line-height: 1.4;">${q.question}</h4>
+      <div class="flex flex-col gap-1">
+        ${optionsHtml}
+      </div>
+    `;
+
+    // Add option select listeners
+    container.querySelectorAll(".select-option-btn").forEach(btn => {
+      btn.onclick = () => {
+        const pickedIdx = parseInt(btn.getAttribute("data-idx"));
+        if (pickedIdx === q.correct) {
+          quizCorrectCount++;
+          showToast("Correct Answer!", "success");
+        } else {
+          showToast("Incorrect claim verified", "error");
+        }
         quizQuestionIdx++;
-        if (quizQuestionIdx < 3) {
-          renderQuizWidget(cand);
-        } else {
-          // Finished!
-          cand.authenticity_status = "verified";
-          cand.authenticity_score = Math.round((quizCorrectAnswers / 3) * 100);
-          cand.knowledge_confidence_score = Math.round((quizCorrectAnswers / 3) * 100) - Math.floor(Math.random() * 8);
-          // Clamp score minimum
-          if (cand.knowledge_confidence_score < 50) cand.knowledge_confidence_score = 62;
-          
-          // Boost matching score in ecosystem!
-          cand.overall_score = Math.min(100, cand.overall_score + 4);
-          cand.skill_match_score = Math.min(100, cand.skill_match_score + 5);
-          
-          alert(`Verification challenge complete! Authenticity verified at ${cand.authenticity_score}%. Match Score updated in real-time.`);
-          loadCandidateDashboardView();
-          loadDashboardView(); // sync recruiter widget
-        }
+        renderVerificationUI();
       };
-    }
-    lucide.createIcons();
-  }
-
-  function initEcosystemV2Features() {
-    // 3D Parallax Rotation
-    const heroBox = document.getElementById("landing-view");
-    const heroCard = document.getElementById("hero-3d-card");
-    if (heroBox && heroCard) {
-      heroBox.addEventListener("mousemove", (e) => {
-        const boxRect = heroBox.getBoundingClientRect();
-        const x = e.clientX - boxRect.left - boxRect.width / 2;
-        const y = e.clientY - boxRect.top - boxRect.height / 2;
-        
-        const rotY = (x / (boxRect.width / 2)) * 20; // max 20deg
-        const rotX = -(y / (boxRect.height / 2)) * 20;
-        
-        heroCard.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
-      });
-
-      heroBox.addEventListener("mouseleave", () => {
-        heroCard.style.transform = "rotateY(15deg) rotateX(10deg)"; // reset
-      });
-    }
-
-    // Portal SWITCHER Click logic
-    const recSwitch = document.getElementById("portal-switch-recruiter");
-    const candSwitch = document.getElementById("portal-switch-candidate");
-    
-    const recGroup = document.getElementById("nav-recruiter-group");
-    const candGroup = document.getElementById("nav-candidate-group");
-
-    if (recSwitch && candSwitch) {
-      recSwitch.addEventListener("click", () => {
-        currentPortalMode = "recruiter";
-        recSwitch.classList.add("active");
-        candSwitch.classList.remove("active");
-        
-        recGroup.classList.remove("hidden");
-        candGroup.classList.add("hidden");
-        
-        window.location.hash = "#dashboard";
-      });
-
-      candSwitch.addEventListener("click", () => {
-        currentPortalMode = "candidate";
-        candSwitch.classList.add("active");
-        recSwitch.classList.remove("active");
-        
-        candGroup.classList.remove("hidden");
-        recGroup.classList.add("hidden");
-        
-        window.location.hash = "#candidate-dashboard";
-      });
-    }
-
-    // Landing Page CTAs mapping
-    const recCta = document.getElementById("landing-recruiter-cta");
-    const candCta = document.getElementById("landing-candidate-cta");
-
-    if (recCta && candCta) {
-      recCta.onclick = (e) => {
-        e.preventDefault();
-        currentPortalMode = "recruiter";
-        if (recSwitch) {
-          recSwitch.click();
-        } else {
-          window.location.hash = "#dashboard";
-        }
-      };
-
-      candCta.onclick = (e) => {
-        e.preventDefault();
-        currentPortalMode = "candidate";
-        if (candSwitch) {
-          candSwitch.click();
-        } else {
-          window.location.hash = "#candidate-dashboard";
-        }
-      };
-    }
-
-    // Live Product Demo Simulator
-    const demoBtn = document.getElementById("demo-trigger-btn");
-    const demoEmpty = document.getElementById("demo-empty-result");
-    const demoActual = document.getElementById("demo-actual-result");
-    const scanLine = document.getElementById("demo-scan-line");
-    
-    const demoStep1 = document.getElementById("demo-step-1");
-    const demoStep2 = document.getElementById("demo-step-2");
-    const demoStep3 = document.getElementById("demo-step-3");
-
-    if (demoBtn) {
-      demoBtn.onclick = () => {
-        demoBtn.disabled = true;
-        demoBtn.textContent = "AI Sourcing Engine Running...";
-        demoEmpty.classList.remove("hidden");
-        demoActual.classList.add("hidden");
-        scanLine.style.display = "block";
-
-        // Step animations
-        demoStep1.className = "pipeline-step-item active";
-        demoStep1.querySelector("i").setAttribute("data-lucide", "loader");
-        demoStep2.className = "pipeline-step-item";
-        demoStep2.querySelector("i").setAttribute("data-lucide", "circle");
-        demoStep3.className = "pipeline-step-item";
-        demoStep3.querySelector("i").setAttribute("data-lucide", "circle");
-        lucide.createIcons();
-
-        setTimeout(() => {
-          demoStep1.className = "pipeline-step-item completed";
-          demoStep1.querySelector("i").setAttribute("data-lucide", "check-circle");
-          demoStep2.className = "pipeline-step-item active";
-          demoStep2.querySelector("i").setAttribute("data-lucide", "loader");
-          lucide.createIcons();
-          
-          setTimeout(() => {
-            demoStep2.className = "pipeline-step-item completed";
-            demoStep2.querySelector("i").setAttribute("data-lucide", "check-circle");
-            demoStep3.className = "pipeline-step-item active";
-            demoStep3.querySelector("i").setAttribute("data-lucide", "loader");
-            lucide.createIcons();
-
-            setTimeout(() => {
-              demoStep3.className = "pipeline-step-item completed";
-              demoStep3.querySelector("i").setAttribute("data-lucide", "check-circle");
-              lucide.createIcons();
-              
-              // End scan
-              scanLine.style.display = "none";
-              demoEmpty.classList.add("hidden");
-              demoActual.classList.remove("hidden");
-              demoBtn.disabled = false;
-              demoBtn.textContent = "Run AI Intelligence Scan";
-            }, 1000);
-          }, 1200);
-        }, 1000);
-      };
-    }
-
-    // AI Chat drawer toggles
-    const chatToggle = document.getElementById("chat-drawer-toggle");
-    const chatDrawer = document.getElementById("ai-chat-drawer");
-    const chatChevron = document.getElementById("chat-chevron");
-
-    if (chatToggle && chatDrawer) {
-      chatToggle.onclick = () => {
-        chatDrawer.classList.toggle("chat-collapsed");
-        const isCollapsed = chatDrawer.classList.contains("chat-collapsed");
-        chatChevron.setAttribute("data-lucide", isCollapsed ? "chevron-up" : "chevron-down");
-        lucide.createIcons();
-        if (!isCollapsed) {
-          renderChatChips();
-        }
-      };
-    }
-
-    // Send chat message
-    const sendBtn = document.getElementById("chat-send-btn");
-    const chatInput = document.getElementById("chat-user-input");
-    if (sendBtn && chatInput) {
-      sendBtn.onclick = () => {
-        submitChatMessage(chatInput.value);
-      };
-      chatInput.onkeydown = (e) => {
-        if (e.key === "Enter") {
-          submitChatMessage(chatInput.value);
-        }
-      };
-    }
-  }
-
-  function renderChatChips() {
-    const chipsContainer = document.getElementById("chat-chips-container");
-    if (!chipsContainer) return;
-    
-    chipsContainer.innerHTML = "";
-    let chips = [];
-    if (currentPortalMode === "recruiter") {
-      chips = ["Show Backend gems", "Highest growth potential?", "Likely to become Tech Leads?"];
-    } else {
-      chips = ["What skills am I missing?", "How to improve my score?", "View matching jobs"];
-    }
-
-    chips.forEach(text => {
-      const chip = document.createElement("button");
-      chip.className = "chat-chip";
-      chip.textContent = text;
-      chip.onclick = () => {
-        submitChatMessage(text);
-      };
-      chipsContainer.appendChild(chip);
     });
   }
 
-  function submitChatMessage(msgText) {
-    if (!msgText.trim()) return;
-    const msgWrap = document.getElementById("chat-messages-container");
-    const input = document.getElementById("chat-user-input");
-    if (!msgWrap) return;
+  // 8. NOTIFICATIONS CENTER
+  function loadNotificationsView() {
+    const notifContainer = document.getElementById("notifications-list-container");
+    notifContainer.innerHTML = "";
 
-    // Clear input
-    if (input) input.value = "";
-
-    // Append user message
-    const userMsg = document.createElement("div");
-    userMsg.className = "chat-msg user";
-    userMsg.textContent = msgText;
-    msgWrap.appendChild(userMsg);
-    msgWrap.scrollTop = msgWrap.scrollHeight;
-
-    // Simulate typing and reply
-    setTimeout(() => {
-      let replyText = "";
-      const text = msgText.toLowerCase();
-
-      if (text.includes("backend gems")) {
-        replyText = "I identified Helena Rostova (Vue.js/GCP → React/AWS, Match: 93%) and Marcus Vance (Docker/Python → Kubernetes/Go, Match: 89%) as top backend and frontend hidden gems in the ecosystem.";
-      } else if (text.includes("growth potential") || text.includes("potential")) {
-        replyText = "Helena Rostova holds the highest True Potential index of 96, showing rapid progression to Principal Architect roles within 24 months.";
-      } else if (text.includes("tech leads") || text.includes("leaders")) {
-        replyText = "Liam O'Connor (VP of Cloud Ops prediction) and Kenji Tanaka (Director of AI Research prediction) are flagged as high-potential tech leads.";
-      } else if (text.includes("skills am i missing") || text.includes("missing")) {
-        replyText = "You have gaps in AWS Cloud Infrastructure and GraphQL Federation. Check your customized Learning Hub roadmap to begin training.";
-      } else if (text.includes("improve my score") || text.includes("improve")) {
-        replyText = "You can improve your overall Match score by verifying your skills in the Resume Authenticity Challenge (+15%) or completing the AWS/GraphQL certs in your Learning Hub (+12%).";
-      } else if (text.includes("matching jobs") || text.includes("jobs")) {
-        replyText = "You currently correlate to Senior Frontend Architect (93% match) and Full Stack Engineer (86% match).";
+    initialNotifications.forEach(notif => {
+      const item = document.createElement("div");
+      item.className = `notif-item ${notif.unread ? "unread" : ""}`;
+      
+      let iconColor = "bg-brand";
+      let iconName = "bell";
+      if (notif.type === "rematch") {
+        iconColor = "dot-green";
+        iconName = "check-circle";
+      } else if (notif.type === "growth") {
+        iconColor = "dot-violet";
+        iconName = "trending-up";
       } else {
-        replyText = "I've analyzed the Talent DNA profiles, mapped skill adjacencies, and scored verification rates. Let me know if you would like me to summarize any candidate or job match.";
+        iconColor = "dot-amber";
+        iconName = "kanban";
       }
 
-      const botMsg = document.createElement("div");
-      botMsg.className = "chat-msg bot";
-      botMsg.textContent = replyText;
-      msgWrap.appendChild(botMsg);
-      msgWrap.scrollTop = msgWrap.scrollHeight;
-    }, 800);
+      item.innerHTML = `
+        <div class="notif-icon ${iconColor}">
+          <i data-lucide="${iconName}" style="color: white; width: 14px; height: 14px;"></i>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">${notif.title}</div>
+          <div class="notif-desc">${notif.body}</div>
+          <div class="notif-time">${notif.time}</div>
+        </div>
+      `;
+
+      item.addEventListener("click", () => {
+        notif.unread = false;
+        loadNotificationsView();
+        
+        // Navigate
+        if (notif.actionLink) {
+          window.location.hash = notif.actionLink;
+        }
+      });
+
+      notifContainer.appendChild(item);
+    });
+
+    // Update unread count
+    const unreadCount = initialNotifications.filter(n => n.unread).length;
+    const badgeCount = document.getElementById("notif-badge-count");
+    if (badgeCount) {
+      badgeCount.textContent = unreadCount;
+      const notifDot = document.getElementById("topbar-notif-dot");
+      if (unreadCount === 0) {
+        badgeCount.classList.add("hidden");
+        if (notifDot) notifDot.classList.add("hidden");
+      } else {
+        badgeCount.classList.remove("hidden");
+        if (notifDot) notifDot.classList.remove("hidden");
+      }
+    }
+
+    // Mark all read button trigger
+    document.getElementById("notif-mark-read-btn").onclick = () => {
+      initialNotifications.forEach(n => n.unread = false);
+      showToast("Marked all notifications read");
+      loadNotificationsView();
+    };
+
+    lucide.createIcons();
   }
 
-  // Initialize V2 Ecosystem Features once
-  initEcosystemV2Features();
+  // ------------------------------------------------------------
+  // INITIAL ROUTING TRIGGER
+  // ------------------------------------------------------------
+  handleRouting();
 
-  lucide.createIcons();
+  // ------------------------------------------------------------
+  // HERO INTERACTIVE PREVIEW WIDGET & MOUSE EFFECTS
+  // ------------------------------------------------------------
+  const heroSec = document.querySelector('.hero-section');
+  if (heroSec) {
+    heroSec.addEventListener('mousemove', (e) => {
+      const rect = heroSec.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      heroSec.style.setProperty('--mouse-x', `${x}px`);
+      heroSec.style.setProperty('--mouse-y', `${y}px`);
+    });
+  }
+
+  const heroCandidateData = {
+    helena: {
+      name: "Helena Rostova",
+      role: "Senior UI Developer Match",
+      initials: "HR",
+      match: 93,
+      skills: 95,
+      learning: 96,
+      growth: 92,
+      rec: "Strong Hire: Vue.js foundation maps 91% to React architect requirements.",
+      exp: "6 Yrs",
+      comms: "Strong",
+      domain: "88%"
+    },
+    marcus: {
+      name: "Marcus Vance",
+      role: "Distributed Systems Match",
+      initials: "MV",
+      match: 89,
+      skills: 85,
+      learning: 90,
+      growth: 92,
+      rec: "Consider: Python/Docker background translates 85% to core Go systems specs.",
+      exp: "4 Yrs",
+      comms: "Excellent",
+      domain: "89%"
+    },
+    kenji: {
+      name: "Dr. Kenji Tanaka",
+      role: "ML Scientist Match",
+      initials: "KT",
+      match: 95,
+      skills: 97,
+      learning: 96,
+      growth: 93,
+      rec: "Strong Hire: Published research papers show 96% domain alignment.",
+      exp: "7 Yrs",
+      comms: "Strong",
+      domain: "96%"
+    }
+  };
+
+  let activeHeroCand = "helena";
+
+  // Tab switcher
+  document.querySelectorAll(".hero-selector-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".hero-selector-btn").forEach(b => {
+        b.classList.remove("active");
+        b.style.background = "var(--surface)";
+        b.style.color = "var(--text-muted)";
+        b.style.borderColor = "var(--border)";
+      });
+
+      btn.classList.add("active");
+      btn.style.background = "var(--primary-subtle)";
+      btn.style.color = "var(--primary)";
+      btn.style.borderColor = "var(--primary)";
+
+      const candKey = btn.getAttribute("data-cand");
+      activeHeroCand = candKey;
+      updateHeroWidget(candKey);
+    });
+  });
+
+  function updateHeroWidget(key) {
+    const data = heroCandidateData[key];
+    if (!data) return;
+
+    document.getElementById("hero-widget-avatar").textContent = data.initials;
+    document.getElementById("hero-widget-name").textContent = data.name;
+    document.getElementById("hero-widget-role").textContent = data.role;
+    document.getElementById("hero-widget-match").textContent = `${data.match}% Match`;
+    
+    document.getElementById("hero-widget-bar-skills").style.width = `${data.skills}%`;
+    document.getElementById("hero-widget-val-skills").textContent = `${data.skills}%`;
+    
+    document.getElementById("hero-widget-bar-learning").style.width = `${data.learning}%`;
+    document.getElementById("hero-widget-val-learning").textContent = `${data.learning}%`;
+    
+    document.getElementById("hero-widget-bar-growth").style.width = `${data.growth}%`;
+    document.getElementById("hero-widget-val-growth").textContent = `${data.growth}%`;
+    
+    document.getElementById("hero-widget-rec").textContent = data.rec;
+    
+    document.getElementById("hero-widget-stat-exp").textContent = data.exp;
+    document.getElementById("hero-widget-stat-comms").textContent = data.comms;
+    document.getElementById("hero-widget-stat-domain").textContent = data.domain;
+
+    // Reset Run button state
+    const runBtn = document.getElementById("hero-widget-run-btn");
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i data-lucide="play"></i><span>Simulate AI Trajectory</span>';
+      lucide.createIcons();
+    }
+  }
+
+  // Simulator animation logic
+  const runBtn = document.getElementById("hero-widget-run-btn");
+  if (runBtn) {
+    runBtn.addEventListener("click", () => {
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<i data-lucide="refresh-cw" class="animate-spin"></i><span>Running AI Model...</span>';
+      lucide.createIcons();
+
+      const data = heroCandidateData[activeHeroCand];
+      const matchEl = document.getElementById("hero-widget-match");
+      const card = document.getElementById("hero-widget-card");
+
+      // Visual pulse
+      card.style.transform = "scale(0.98)";
+      card.style.transition = "transform 0.1s";
+      setTimeout(() => {
+        card.style.transform = "scale(1.02)";
+        card.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)";
+        card.style.borderColor = "var(--primary)";
+      }, 100);
+
+      // Value ticker simulation
+      let currentVal = 20;
+      const interval = setInterval(() => {
+        currentVal += Math.ceil((data.match - currentVal) / 4);
+        if (currentVal >= data.match) {
+          currentVal = data.match;
+          clearInterval(interval);
+          
+          // Complete simulation
+          card.style.transform = "none";
+          card.style.boxShadow = "var(--sh-md)";
+          card.style.borderColor = "var(--border)";
+          runBtn.innerHTML = '<i data-lucide="check-circle" style="color: var(--success);"></i><span>Simulation Success!</span>';
+          lucide.createIcons();
+          showToast(`Simulation complete: ${data.name} predicted with high accuracy.`);
+        }
+        matchEl.textContent = `${currentVal}% Match`;
+      }, 50);
+    });
+  }
+
 });

@@ -159,7 +159,7 @@ const candidates = [
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
     experience: 6,
     overall_score: 93,
-    categories: ["hidden_gem", "fast_learner"],
+    categories: ["high_potential", "fast_learner"],
     skill_match_score: 91,
     experience_score: 88,
     potential_score: 96,
@@ -172,7 +172,7 @@ const candidates = [
       { name: "GCP (Cloud)", level: 85, matchType: "adjacent", equivalentTo: "AWS Cloud" },
       { name: "Next.js", level: 88, matchType: "exact" }
     ],
-    why_selected: "Helena is a textbook Hidden Gem. While the role lists React & AWS, she is an expert in Vue.js and GCP, demonstrating identical architectural knowledge in single-page apps and serverless environments. Her high potential score (96) is backed by her rapid transition from designer to lead UI architect in just 4 years.",
+    why_selected: "Helena is a textbook High Potential Candidate. While the role lists React & AWS, she is an expert in Vue.js and GCP, demonstrating identical architectural knowledge in single-page apps and serverless environments. Her high potential score (96) is backed by her rapid transition from designer to lead UI architect in just 4 years.",
     strengths: [
       "Deep understanding of frontend state-management paradigms",
       "Exceptional visual aesthetics and component design principles",
@@ -216,7 +216,7 @@ const candidates = [
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
     experience: 4,
     overall_score: 89,
-    categories: ["hidden_gem", "high_intent"],
+    categories: ["high_potential", "high_intent"],
     skill_match_score: 85,
     experience_score: 80,
     potential_score: 92,
@@ -437,7 +437,7 @@ const candidates = [
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
     experience: 5,
     overall_score: 88,
-    categories: ["hidden_gem", "fast_learner"],
+    categories: ["high_potential", "fast_learner"],
     skill_match_score: 84,
     experience_score: 85,
     potential_score: 93,
@@ -510,19 +510,19 @@ const initialNotifications = [
     id: "notif-1",
     type: "rematch",
     title: "AI Ecosystem Match Found",
-    body: "Helena Rostova (previously applied for UI Developer) was automatically matched to the new 'Senior Frontend Architect' opening. Match Score: 93% (Hidden Gem).",
+    body: "Helena Rostova (previously applied for UI Developer) was automatically matched to the new 'Senior Frontend Architect' opening. Match Score: 93% (High Potential Candidate).",
     time: "2 hours ago",
     unread: true,
-    actionLink: "#candidates"
+    actionLink: "#discover"
   },
   {
     id: "notif-2",
     type: "growth",
-    title: "Candidate DNA Threshold Met",
+    title: "Evidence Profile Threshold Met",
     body: "Marcus Vance has updated his GitHub portfolio with 3 new Rust networking repositories. True Potential score increased to 92.",
     time: "5 hours ago",
     unread: true,
-    actionLink: "#dna"
+    actionLink: "#evaluate"
   },
   {
     id: "notif-3",

@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/recruiter",
+        destination: "/#dashboard",
+        permanent: false,
+      },
+      {
+        source: "/candidate",
+        destination: "/#candidate-dashboard",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
