@@ -1070,12 +1070,24 @@ ul,ol { list-style: none; }
 .step-icon-wrap svg { width: 24px; height: 24px; color: var(--primary); }
 .step-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+.step-click-hint {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600;
+  color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;
+  background: var(--primary-subtle); padding: 4px 10px; border-radius: var(--r-full);
+}
+.step-click-hint svg { width: 12px; height: 12px; }
 .step-connector {
   position: absolute; right: -13px; top: 40px; z-index: 1;
   width: 26px; height: 26px; background: var(--surface); border: 1px solid var(--border);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
 }
 .step-connector svg { width: 12px; height: 12px; color: var(--text-faint); }
+.step-card-back .step-title { font-size: 16px; margin-bottom: 12px; }
+.step-card-back .step-desc { font-size: 13px; line-height: 1.6; margin-bottom: 12px; color: var(--text-2); }
+.step-card-back ul { text-align: left; margin-bottom: 16px; padding-left: 0; }
+.step-card-back li { font-size: 11px; display: flex; align-items: center; gap: 6px; color: var(--slate-600); margin-bottom: 4px; }
+.step-card-back li svg { width: 10px; height: 10px; color: var(--success); flex-shrink: 0; }
 
 /* ============================================================
    26. PRODUCT SCREENSHOTS SECTION
