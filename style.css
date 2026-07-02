@@ -1893,3 +1893,383 @@ ul,ol { list-style: none; }
   color: var(--primary) !important;
   box-shadow: var(--sh-xs);
 }
+
+/* ================================================================
+   EXPORT HIRING REPORT MODAL — HireMind AI
+   ================================================================ */
+
+/* Overlay */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.export-overlay.hidden { display: none; }
+
+/* Modal Box */
+.export-modal {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.18), 0 8px 20px rgba(0,0,0,0.08);
+  padding: 24px;
+}
+
+/* Header */
+.export-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.export-modal-icon {
+  width: 40px;
+  height: 40px;
+  background: #EEF2FF;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+.export-modal-icon svg { width: 18px; height: 18px; }
+.export-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 2px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.export-modal-sub {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+.export-close-btn {
+  margin-left: auto;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.export-close-btn:hover { background: #f3f4f6; color: #111827; }
+.export-close-btn svg { width: 13px; height: 13px; }
+
+/* Stats Row */
+.export-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.export-stat-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.export-stat-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+.export-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Sections */
+.export-section {
+  margin-bottom: 18px;
+}
+.export-section-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Scope Grid */
+.export-scope-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scope-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.scope-btn:hover { border-color: #a5b4fc; color: #4F46E5; background: #eef2ff; }
+.scope-btn.active {
+  background: #eef2ff;
+  border-color: #818cf8;
+  color: #4F46E5;
+}
+
+/* Sort Select */
+.export-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #374151;
+  background: #f9fafb;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.export-select:focus { border-color: #818cf8; background: #fff; }
+
+/* Preview Bar */
+.export-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #EEF2FF;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 18px;
+}
+.export-preview-count {
+  font-size: 15px;
+  font-weight: 800;
+  color: #4F46E5;
+}
+
+/* Format buttons */
+.export-format-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.export-format-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid #d1fae5;
+  background: #ecfdf5;
+  color: #059669;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.export-format-btn:hover { background: #d1fae5; }
+.export-format-btn svg { width: 13px; height: 13px; }
+.export-format-btn.disabled {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.export-soon-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+/* CTA Button */
+.export-generate-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.export-generate-btn:hover {
+  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+  transform: translateY(-1px);
+}
+.export-generate-btn:active { transform: translateY(0); }
+.export-generate-btn svg { width: 15px; height: 15px; }
+.export-fine-print {
+  text-align: center;
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* Progress Stage */
+.export-progress-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  min-height: 300px;
+  justify-content: center;
+}
+.export-spinner-wrap {
+  width: 72px;
+  height: 72px;
+  background: #EEF2FF;
+  border: 2px solid #c7d2fe;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.export-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e7ff;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: exportSpin 0.8s linear infinite;
+}
+@keyframes exportSpin {
+  to { transform: rotate(360deg); }
+}
+.export-done-icon {
+  width: 72px;
+  height: 72px;
+  background: #d1fae5;
+  border: 2px solid #6ee7b7;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+}
+.export-done-icon svg { width: 36px; height: 36px; }
+
+.export-progress-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  margin: 0;
+}
+.export-progress-sub {
+  font-size: 11px;
+  color: #6b7280;
+  text-align: center;
+  margin: 0;
+}
+
+/* Progress bar */
+.export-progress-bar-wrap {
+  width: 100%;
+}
+.export-progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+#export-pct { font-weight: 700; color: #4F46E5; font-family: monospace; }
+.export-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.export-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4F46E5, #7C3AED);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* Steps list */
+.export-steps-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.export-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.export-step.done    { background: #f0fdf4; color: #15803d; }
+.export-step.active  { background: #eef2ff; color: #4F46E5; font-weight: 600; }
+.export-step.pending { opacity: 0.35; color: #6b7280; }
+.export-step-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.export-step.active .export-step-icon {
+  animation: exportSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* Utility */
+.hidden { display: none !important; }
+

@@ -13,6 +13,9 @@
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- SheetJS (XLSX) — real .xlsx generation in-browser -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1247,6 +1250,12 @@
               <h1 class="page-title">Overview Dashboard</h1>
               <p class="page-subtitle">Aggregate summary of talent pipeline health and AI matching metrics.</p>
             </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="dash-export-btn" onclick="openExportModal('dashboard')">
+                <i data-lucide="file-spreadsheet"></i>
+                <span>Export AI Hiring Report</span>
+              </button>
+            </div>
           </div>
 
           <!-- KPI Metric Cards Grid (8 Cards) -->
@@ -1350,6 +1359,12 @@
             <div>
               <h1 class="page-title">Discover Talent</h1>
               <p class="page-subtitle">Translate adjacent skill architectures and uncover high-performance profiles.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" onclick="openExportModal('discover')">
+                <i data-lucide="file-spreadsheet"></i>
+                <span>Export Ranked Candidates</span>
+              </button>
             </div>
           </div>
 
@@ -1861,9 +1876,133 @@
     </div>
   </div>
 
+  <!-- Export Hiring Report Modal -->
+  <div id="export-modal-overlay" class="export-overlay hidden" onclick="closeExportModal(event)">
+    <div class="export-modal" id="export-modal-box">
+
+      <!-- Stage 1: Config -->
+      <div id="export-stage-config">
+        <div class="export-modal-header">
+          <div class="export-modal-icon">
+            <i data-lucide="file-spreadsheet"></i>
+          </div>
+          <div>
+            <h2 class="export-modal-title">Export AI Hiring Report</h2>
+            <p class="export-modal-sub" id="export-job-label">Senior Frontend Architect</p>
+          </div>
+          <button class="export-close-btn" onclick="closeExportModal(null)">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div class="export-stats-row">
+          <div class="export-stat-box">
+            <span class="export-stat-label"><i data-lucide="users" style="width:11px;height:11px;"></i> Candidates</span>
+            <span class="export-stat-value" id="export-stat-total">6</span>
+          </div>
+          <div class="export-stat-box">
+            <span class="export-stat-label"><i data-lucide="target" style="width:11px;height:11px;"></i> Avg Match</span>
+            <span class="export-stat-value" id="export-stat-avg">91%</span>
+          </div>
+          <div class="export-stat-box">
+            <span class="export-stat-label"><i data-lucide="trending-up" style="width:11px;height:11px;"></i> Top Score</span>
+            <span class="export-stat-value" id="export-stat-top">95%</span>
+          </div>
+        </div>
+
+        <!-- Export Scope -->
+        <div class="export-section">
+          <p class="export-section-title"><i data-lucide="users" style="width:12px;height:12px;"></i> Export Scope</p>
+          <div class="export-scope-grid">
+            <button class="scope-btn" data-scope="top3" onclick="selectScope(this)">Top 3</button>
+            <button class="scope-btn" data-scope="top5" onclick="selectScope(this)">Top 5</button>
+            <button class="scope-btn active" data-scope="all" onclick="selectScope(this)">All Candidates</button>
+            <button class="scope-btn" data-scope="gems" onclick="selectScope(this)">Gems Only</button>
+            <button class="scope-btn" data-scope="verified" onclick="selectScope(this)">Verified Only</button>
+          </div>
+        </div>
+
+        <!-- Sort Before Export -->
+        <div class="export-section">
+          <p class="export-section-title"><i data-lucide="arrow-up-down" style="width:12px;height:12px;"></i> Sort Before Export</p>
+          <select id="export-sort-select" class="export-select">
+            <option value="overall_score">Highest Match Score</option>
+            <option value="potential_score">Highest Hire Probability</option>
+            <option value="skill_match_score">Highest Skill Match</option>
+            <option value="experience">Most Experienced</option>
+            <option value="intent_score">Highest Intent Score</option>
+          </select>
+        </div>
+
+        <!-- Preview count -->
+        <div class="export-preview-bar">
+          <span>Candidates to be exported</span>
+          <span class="export-preview-count" id="export-preview-count">6</span>
+        </div>
+
+        <!-- Format buttons -->
+        <div class="export-format-row">
+          <button class="export-format-btn active">
+            <i data-lucide="file-spreadsheet"></i> Export Excel (.xlsx)
+          </button>
+          <button class="export-format-btn disabled" disabled>
+            <i data-lucide="file-text"></i> Export PDF <span class="export-soon-badge">Soon</span>
+          </button>
+        </div>
+
+        <!-- CTA -->
+        <button class="export-generate-btn" id="export-generate-btn" onclick="startExportGeneration()">
+          <i data-lucide="download"></i>
+          Generate Excel Report
+          <span id="export-cta-count" style="opacity:0.6;font-weight:400;font-size:11px;"></span>
+        </button>
+        <p class="export-fine-print">Real .xlsx file · 4 worksheets · Professional corporate formatting</p>
+      </div>
+
+      <!-- Stage 2: Progress -->
+      <div id="export-stage-progress" class="hidden">
+        <div class="export-progress-center">
+          <div class="export-spinner-wrap" id="export-spinner-wrap">
+            <div class="export-spinner"></div>
+          </div>
+          <p class="export-progress-title" id="export-progress-title">Preparing Hiring Report…</p>
+          <p class="export-progress-sub" id="export-progress-sub"></p>
+          <div class="export-progress-bar-wrap">
+            <div class="export-progress-label-row">
+              <span>Generating report</span>
+              <span id="export-pct">0%</span>
+            </div>
+            <div class="export-progress-track">
+              <div class="export-progress-fill" id="export-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="export-steps-list" id="export-steps-list"></div>
+        </div>
+      </div>
+
+      <!-- Stage 3: Done -->
+      <div id="export-stage-done" class="hidden">
+        <div class="export-progress-center">
+          <div class="export-done-icon">
+            <i data-lucide="check-circle-2"></i>
+          </div>
+          <p class="export-progress-title" style="color:#16a34a;">File Downloaded!</p>
+          <p class="export-progress-sub" id="export-done-filename" style="font-family:monospace;font-size:10px;color:#6b7280;word-break:break-all;"></p>
+          <p class="export-progress-sub" id="export-done-time" style="color:#9ca3af;margin-top:4px;"></p>
+          <button class="export-generate-btn" style="background:#16a34a;margin-top:20px;" onclick="closeExportModal(null)">
+            <i data-lucide="check"></i> Close
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Main JS Scripts -->
   <script src="mockData.js"></script>
   <script src="threeBackground.js"></script>
   <script src="app.js"></script>
+  <script src="exportReport.js"></script>
 </body>
 </html>

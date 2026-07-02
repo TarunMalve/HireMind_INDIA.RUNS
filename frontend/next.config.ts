@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // ExcelJS is a heavy CommonJS module used only client-side (dynamic import).
+  // Marking it external for server-side webpack prevents SSR bundling errors.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals ?? []), "exceljs"];
+    }
+    return config;
+  },
   async rewrites() {
     return [
       {
@@ -17,11 +25,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/recruiter",
-        destination: "/#dashboard",
-        permanent: false,
-      },
+      // Removed redirect for /recruiter so the Next.js recruiter page renders.
+      // The old HTML dashboard is still accessible via /#dashboard directly.
       {
         source: "/candidate",
         destination: "/#candidate-dashboard",

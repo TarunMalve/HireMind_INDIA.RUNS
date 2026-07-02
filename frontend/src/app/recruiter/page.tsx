@@ -7,11 +7,15 @@ import {
   ChevronRight, Briefcase, LayoutGrid, List,
   Bell, X,
   Brain, Globe,
-  Plus, ArrowRight, Download, RefreshCw, ShieldCheck, Layers
+  Plus, ArrowRight, Download, RefreshCw, ShieldCheck, Layers,
+  FileSpreadsheet, Share2, CheckCircle2, Eye,
+  Calendar,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import ExportReportModal, { ExportReportButton } from "@/components/ExportReportModal";
+import type { ExportCandidate } from "@/lib/exportHiringReport";
 
-// ─── Types ────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────
 interface Candidate {
   id: string;
   name: string;
@@ -30,7 +34,7 @@ interface Candidate {
   availableIn: string;
 }
 
-// ─── Mock Data ─────────────────────────────────────────────────────────
+// ─── Mock Data ─────────────────────────────────────────────────────────────
 const mockCandidates: Candidate[] = [
   {
     id: "1", name: "Alex Chen", role: "Frontend Engineer", isHiddenGem: true,
@@ -82,7 +86,7 @@ const mockCandidates: Candidate[] = [
   },
 ];
 
-// ─── Status config ─────────────────────────────────────────────────────
+// ─── Status config ─────────────────────────────────────────────────────────
 const statusConfig = {
   new: { label: "New", color: "#22d3ee", bg: "bg-cyan-500/15", border: "border-cyan-500/30" },
   reviewed: { label: "Reviewed", color: "#a78bfa", bg: "bg-violet-500/15", border: "border-violet-500/30" },
@@ -90,7 +94,7 @@ const statusConfig = {
   interviewing: { label: "Interviewing", color: "#fb923c", bg: "bg-orange-500/15", border: "border-orange-500/30" },
 };
 
-// ─── Avatar ────────────────────────────────────────────────────────────
+// ─── Avatar ────────────────────────────────────────────────────────────────
 function CandidateAvatar({ initials, gem }: { initials: string; gem: boolean }) {
   return (
     <div className="relative flex-shrink-0">
@@ -109,7 +113,7 @@ function CandidateAvatar({ initials, gem }: { initials: string; gem: boolean }) 
   );
 }
 
-// ─── Score Badge ───────────────────────────────────────────────────────
+// ─── Score Badge ───────────────────────────────────────────────────────────
 function ScorePill({ label, score, color }: { label: string; score: number; color: string }) {
   return (
     <div className="flex flex-col gap-1">
@@ -130,7 +134,7 @@ function ScorePill({ label, score, color }: { label: string; score: number; colo
   );
 }
 
-// ─── Candidate Card ────────────────────────────────────────────────────
+// ─── Candidate Card ────────────────────────────────────────────────────────
 function CandidateCard({ candidate, index }: { candidate: Candidate; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const status = statusConfig[candidate.status];
@@ -229,7 +233,7 @@ function CandidateCard({ candidate, index }: { candidate: Candidate; index: numb
   );
 }
 
-// ─── Metric Card ───────────────────────────────────────────────────────
+// ─── Metric Card ───────────────────────────────────────────────────────────
 function MetricCard({ icon, label, value, sub, trend, color, delay = 0 }: any) {
   return (
     <motion.div
@@ -260,7 +264,7 @@ function MetricCard({ icon, label, value, sub, trend, color, delay = 0 }: any) {
   );
 }
 
-// ─── Pipeline Kanban ───────────────────────────────────────────────────
+// ─── Pipeline Kanban ───────────────────────────────────────────────────────
 function PipelineBar() {
   const stages = [
     { label: "Applied", count: 1248, color: "#4b5563" },
@@ -291,7 +295,7 @@ function PipelineBar() {
   );
 }
 
-// ─── Mini Spark Chart ──────────────────────────────────────────────────
+// ─── Mini Spark Chart ──────────────────────────────────────────────────────
 function SparkLine({ data, color }: { data: number[]; color: string }) {
   const max = Math.max(...data);
   const min = Math.min(...data);
@@ -306,7 +310,7 @@ function SparkLine({ data, color }: { data: number[]; color: string }) {
   );
 }
 
-// ─── Active Roles ──────────────────────────────────────────────────────
+// ─── Active Roles ──────────────────────────────────────────────────────────
 function ActiveRoleRow({ title, count, urgency, match }: any) {
   const urgencyColor = urgency === "High" ? "#f87171" : urgency === "Medium" ? "#fb923c" : "#34d399";
   return (
@@ -326,12 +330,153 @@ function ActiveRoleRow({ title, count, urgency, match }: any) {
   );
 }
 
-// ─── Main Component ────────────────────────────────────────────────────
+// ─── Analysis Complete Card ────────────────────────────────────────────────
+function AnalysisCompleteCard({
+  onViewCandidates,
+  onExport,
+  onDismiss,
+  candidates,
+}: {
+  onViewCandidates: () => void;
+  onExport: () => void;
+  onDismiss: () => void;
+  candidates: Candidate[];
+}) {
+  const gemCount = candidates.filter(c => c.isHiddenGem).length;
+  const topScore = Math.max(...candidates.map(c => c.dnaScore));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      transition={{ type: "spring", bounce: 0.3 }}
+      className="relative bg-gradient-to-r from-emerald-500/10 via-cyan-500/8 to-violet-500/10 border border-emerald-500/25 rounded-3xl p-5 mb-6 overflow-hidden"
+    >
+      {/* Glow */}
+      <div className="absolute top-0 left-1/4 w-48 h-20 bg-emerald-400/10 blur-2xl pointer-events-none" />
+
+      <button
+        onClick={onDismiss}
+        className="absolute top-3 right-3 w-6 h-6 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-gray-500 hover:text-white transition-colors"
+      >
+        <X size={11} />
+      </button>
+
+      <div className="flex flex-col md:flex-row md:items-center gap-5">
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+          <CheckCircle2 size={22} className="text-emerald-400" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-300">Analysis Complete</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          </div>
+          <p className="text-sm text-gray-300 font-inter mb-3">
+            <span className="text-white font-semibold">{candidates.length} candidates</span> evaluated — AI ranking complete
+          </p>
+
+          {/* Stats row */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {[
+              { label: "Top Match", value: `${topScore}%`, color: "#22d3ee" },
+              { label: "Hidden Gems", value: gemCount, color: "#fbbf24" },
+              { label: "Confidence", value: "96%", color: "#a78bfa" },
+            ].map(stat => (
+              <div key={stat.label} className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-500">{stat.label}:</span>
+                <span className="text-xs font-black" style={{ color: stat.color }}>{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            onClick={onViewCandidates}
+            className="px-4 py-2.5 rounded-xl bg-white/8 border border-white/15 text-xs font-semibold text-white hover:bg-white/12 transition-all flex items-center gap-2"
+          >
+            <Eye size={12} /> View Ranked
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            onClick={onExport}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold text-white flex items-center gap-2 shadow-[0_0_16px_rgba(16,185,129,0.3)] hover:opacity-90 transition-all"
+          >
+            <FileSpreadsheet size={12} /> Export Hiring Report
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Candidate Results Toolbar ────────────────────────────────────────────
+function CandidateResultsBar({
+  count,
+  onExport,
+}: {
+  count: number;
+  onExport: () => void;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 bg-white/[0.025] border border-white/8 rounded-2xl">
+      {/* Left: result info */}
+      <div className="flex items-center gap-4">
+        <div>
+          <p className="text-xs font-bold text-white">Candidate Results</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] text-gray-400">
+              <span className="font-semibold text-cyan-400">{count}</span> Candidates Evaluated
+            </span>
+            <span className="text-gray-700">·</span>
+            <span className="text-[10px] text-gray-500 flex items-center gap-1">
+              <RefreshCw size={8} /> Last Analysis: <span className="text-gray-400 font-medium">2 minutes ago</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: actions */}
+      <div className="flex items-center gap-2">
+        <motion.button
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          onClick={onExport}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/15 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:bg-blue-600/22 transition-all"
+        >
+          <FileSpreadsheet size={12} /> Export Excel
+        </motion.button>
+        <button
+          disabled
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.02] border border-white/8 text-[11px] font-medium text-gray-600 cursor-not-allowed"
+        >
+          <Download size={11} /> Export PDF
+          <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-gray-700 ml-0.5">Soon</span>
+        </button>
+        <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/8 text-[11px] font-medium text-gray-400 hover:text-gray-200 hover:bg-white/8 transition-all">
+          <Share2 size={11} /> Share
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────
 export default function RecruiterDashboard() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"gems" | "dna" | "recent">("gems");
   const [activeFilter, setActiveFilter] = useState<"all" | "new" | "shortlisted" | "interviewing">("all");
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [showAnalysisComplete, setShowAnalysisComplete] = useState(true);
+
+  const openExport = useCallback(() => setExportModalOpen(true), []);
+  const closeExport = useCallback(() => setExportModalOpen(false), []);
 
   const filtered = mockCandidates
     .filter(c => {
@@ -348,6 +493,9 @@ export default function RecruiterDashboard() {
     });
 
   const gemCount = mockCandidates.filter(c => c.isHiddenGem).length;
+
+  // Convert to ExportCandidate shape
+  const exportCandidates: ExportCandidate[] = mockCandidates.map(c => ({ ...c }));
 
   return (
     <div className="min-h-screen bg-[#06050f] text-white font-sans">
@@ -393,7 +541,7 @@ export default function RecruiterDashboard() {
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4"
+          className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4"
         >
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -410,15 +558,34 @@ export default function RecruiterDashboard() {
             </h1>
             <p className="text-gray-500 text-sm font-inter mt-1">Analyzing <span className="text-white font-semibold">1,248 candidates</span> across <span className="text-cyan-400 font-semibold">5 active roles</span></p>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-gray-300 hover:bg-white/10 transition-all flex items-center gap-2">
-              <Download size={12} /> Export Report
+
+          {/* ── INTEGRATION POINT 1: Top-right export button ── */}
+          <div className="flex gap-2 items-center flex-wrap">
+            {/* Demo toggle for Analysis Complete card */}
+            <button
+              onClick={() => setShowAnalysisComplete(v => !v)}
+              className="px-3 py-2 rounded-xl border border-white/8 bg-white/[0.03] text-[10px] font-medium text-gray-500 hover:text-gray-300 hover:bg-white/6 transition-all"
+            >
+              {showAnalysisComplete ? "Hide" : "Show"} Analysis Card
             </button>
+            <ExportReportButton onClick={openExport} variant="secondary" />
             <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 text-xs font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:opacity-90 transition-all flex items-center gap-2">
               <Plus size={12} /> Post New Role
             </button>
           </div>
         </motion.div>
+
+        {/* ── INTEGRATION POINT 3: Analysis Complete Card ── */}
+        <AnimatePresence>
+          {showAnalysisComplete && (
+            <AnalysisCompleteCard
+              onViewCandidates={() => setShowAnalysisComplete(false)}
+              onExport={openExport}
+              onDismiss={() => setShowAnalysisComplete(false)}
+              candidates={mockCandidates}
+            />
+          )}
+        </AnimatePresence>
 
         {/* ── Main Grid ── */}
         <div className="grid grid-cols-12 gap-5">
@@ -564,8 +731,17 @@ export default function RecruiterDashboard() {
               </div>
             </motion.div>
 
+            {/* ── INTEGRATION POINT 2: Candidate Results Toolbar ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <CandidateResultsBar count={mockCandidates.length} onExport={openExport} />
+            </motion.div>
+
             {/* Results Count */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between -mt-1">
               <p className="text-xs text-gray-500 font-inter">
                 Showing <span className="text-white font-semibold">{filtered.length}</span> candidates
                 {search && <> matching <span className="text-cyan-400 font-semibold">"{search}"</span></>}
@@ -625,13 +801,36 @@ export default function RecruiterDashboard() {
                   This batch is <span className="text-cyan-300 font-semibold">23% stronger</span> than last month's pool. 3 hidden gems identified — notably <span className="text-white font-semibold">Alex Chen</span> and <span className="text-white font-semibold">Jordan Kim</span> show rare combinations of high potential and verified authenticity. Recommend fast-tracking within <span className="text-yellow-300 font-semibold">48 hours</span> before competing offers emerge.
                 </p>
               </div>
-              <button className="px-3 py-1.5 rounded-xl bg-violet-500/20 border border-violet-500/30 text-[10px] font-bold text-violet-300 hover:bg-violet-500/30 transition-colors flex-shrink-0 self-start">
-                Full Analysis <ArrowRight size={10} className="inline ml-0.5" />
-              </button>
+              <div className="flex flex-col gap-2 flex-shrink-0 self-start">
+                <button className="px-3 py-1.5 rounded-xl bg-violet-500/20 border border-violet-500/30 text-[10px] font-bold text-violet-300 hover:bg-violet-500/30 transition-colors flex items-center gap-1">
+                  Full Analysis <ArrowRight size={10} className="inline ml-0.5" />
+                </button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                  onClick={openExport}
+                  className="px-3 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/25 text-[10px] font-bold text-blue-300 hover:bg-blue-500/22 transition-colors flex items-center gap-1"
+                >
+                  <FileSpreadsheet size={10} /> Export
+                </motion.button>
+              </div>
             </motion.div>
           </div>
         </div>
       </div>
+
+      {/* ── Export Modal ── */}
+      <ExportReportModal
+        open={exportModalOpen}
+        onClose={closeExport}
+        candidates={exportCandidates}
+        jobTitle="Senior Frontend Architect"
+        department="Engineering"
+        recruiterName="HR"
+        totalEvaluated={mockCandidates.length}
+        topMatchScore={98}
+        averageMatchScore={92}
+        confidenceScore={96}
+      />
     </div>
   );
 }
