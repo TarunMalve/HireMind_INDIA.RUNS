@@ -1,0 +1,46 @@
+sequenceDiagram
+    participant C as Candidate
+    participant FE as Frontend
+    participant API as Express API
+    participant RE as Ranking Engine
+    participant DB as PostgreSQL
+    participant R as Recruiter
+
+    Note over C: Registration & Profile Setup
+    C->>FE: Sign Up (Clerk)
+    FE->>API: Create User Profile
+    API->>DB: Store User + Candidate
+
+    Note over C: Resume Upload & Analysis
+    C->>FE: Upload Resume
+    FE->>API: POST /api/ai/analyze-resume
+    API-->>FE: Extracted Skills + Experience
+    FE->>API: Update Candidate Profile
+    API->>DB: Save Skills, Experience, DNA
+
+    Note over R: Job Posting
+    R->>FE: Post Job Description
+    FE->>API: POST /api/jobs
+    API->>DB: Create Job with Skills
+
+    Note over C: Application
+    C->>FE: Apply to Job
+    FE->>API: POST /api/applications
+    API->>RE: rankCandidate(candidate, job)
+    RE-->>API: RankResult + DNA + Reasoning
+    API->>DB: Save Application Scores
+    API-->>FE: Application confirmed
+
+    Note over R: Evaluation
+    R->>FE: Open Job Rankings
+    FE->>API: GET /api/applications/matches/:jobId
+    API->>DB: Fetch All Applications
+    API-->>FE: Sorted Ranked List
+    FE-->>R: Dashboard with DNA Charts
+
+    Note over R: Decision Stage
+    R->>FE: Move Candidate to INTERVIEW
+    FE->>API: PUT /api/applications/:id/status
+    API->>DB: Update Status
+    API->>DB: Create Notification
+    DB-->>C: Notification: Interview Scheduled

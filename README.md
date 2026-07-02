@@ -135,25 +135,36 @@ The frontend will be served at `http://localhost:3000` and backend APIs at `http
 
 Explore the detailed architecture, guides, and engineering logs of the HireMind platform:
 
-*   **Core Systems**
-    *   [ARCHITECTURE.md](docs/ARCHITECTURE.md) — System architecture, database mapping, and data flow.
-    *   [TECH_STACK.md](docs/TECH_STACK.md) — Technical choices, trade-offs, and software choices.
-    *   [SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) — Scalability, optimization, vector indexes, and caching.
-*   **Engines & Algorithms**
-    *   [AI_ENGINE.md](docs/AI_ENGINE.md) — LLM prompt designs, semantic parsing, and reasoning generation.
-    *   [SCORING_ENGINE.md](docs/SCORING_ENGINE.md) — Mathematical formula breakdown, P-factors, and zero-killer rules.
-*   **Operations & Developer Guides**
-    *   [INSTALLATION.md](docs/INSTALLATION.md) — Step-by-step local developer environment installation.
-    *   [DEPLOYMENT.md](docs/DEPLOYMENT.md) — Production deployment instructions (Vercel, Railway, Render).
-    *   [API_REFERENCE.md](docs/API_REFERENCE.md) — Endpoint specifications, JSON request/response structures.
-*   **Product Manuals**
-    *   [USER_GUIDE.md](docs/USER_GUIDE.md) — User interface controls, buttons, theme switches.
-    *   [RECRUITER_GUIDE.md](docs/RECRUITER_GUIDE.md) — Sourcing, shortlisting, and candidate analytics.
-    *   [CANDIDATE_GUIDE.md](docs/CANDIDATE_GUIDE.md) — Profiling, roadmap goals, and resume validation.
-*   **Platform Governance & Pitch**
-    *   [HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) — Dedicated guide for hackathon judges & sponsors.
-    *   [ROADMAP.md](docs/ROADMAP.md) — System features planned for future quarters.
-    *   [SECURITY.md](docs/SECURITY.md) — Data encryption, GDPR compliance, rate limits, JWT.
+*   **Getting Started**
+    *   [INSTALLATION.md](docs/getting-started/INSTALLATION.md) — Prerequisites, CLI tools, and installation script.
+    *   [QUICK_START.md](docs/getting-started/QUICK_START.md) — 5-minute workspace startup.
+    *   [LOCAL_SETUP.md](docs/getting-started/LOCAL_SETUP.md) — Database seeding, environment variables, and local verification.
+    *   [DEPLOYMENT.md](docs/getting-started/DEPLOYMENT.md) — Vercel and Railway production guides.
+*   **Core Architecture**
+    *   [SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md) — Multi-tier design, data flows, and middleware security.
+    *   [DATABASE_SCHEMA.md](docs/architecture/DATABASE_SCHEMA.md) — Prisma models, PostgreSQL relational structure, and indexes.
+    *   [DATA_PIPELINE.md](docs/architecture/DATA_PIPELINE.md) — End-to-end resume parse and match processing pipeline.
+    *   [AI_ENGINE.md](docs/architecture/AI_ENGINE.md) — LLM layers, prompt engineering, and DNA radar analysis.
+    *   [MATCHING_ENGINE.md](docs/architecture/MATCHING_ENGINE.md) — Semantic skill search and technology adjacency logic.
+    *   [SCORING_ENGINE.md](docs/architecture/SCORING_ENGINE.md) — Multiplicative ETV-RAVE formulas and zero-killer rules.
+    *   [SECURITY.md](docs/architecture/SECURITY.md) — JWT verification, Clerk integration, and API protection.
+*   **Product Insights**
+    *   [PRODUCT_OVERVIEW.md](docs/product/PRODUCT_OVERVIEW.md) — Mission statement, target users, and innovation value.
+    *   [FEATURES.md](docs/product/FEATURES.md) — Features reference and functional capabilities.
+    *   [RECRUITER_GUIDE.md](docs/product/RECRUITER_GUIDE.md) — Job management, rankings, and candidate profiling for recruiters.
+    *   [CANDIDATE_GUIDE.md](docs/product/CANDIDATE_GUIDE.md) — Profile construction, DNA mapping, and learning roadmaps for candidates.
+    *   [USER_JOURNEY.md](docs/product/USER_JOURNEY.md) — Visual recruiter, candidate, and system journey flows.
+    *   [FAQ.md](docs/product/FAQ.md) — 50-question developer and user FAQ.
+    *   [FUTURE_ROADMAP.md](docs/product/FUTURE_ROADMAP.md) — Planned milestones and ATS marketplace integrations.
+*   **Development & QA**
+    *   [PROJECT_STRUCTURE.md](docs/development/PROJECT_STRUCTURE.md) — Directory layout and codebase organization.
+    *   [TECH_STACK.md](docs/development/TECH_STACK.md) — Monorepo packages, versions, and architectural decisions.
+    *   [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md) — Styling, type safety, and PR submission guides.
+    *   [TESTING.md](docs/development/TESTING.md) — QA checklist, manual engine verification, and automated testing roadmap.
+    *   [CONTRIBUTING.md](docs/development/CONTRIBUTING.md) — Open source workflows and contribution steps.
+    *   [CHANGELOG.md](docs/development/CHANGELOG.md) — Core release logs and version history.
+*   **API Layer**
+    *   [API_REFERENCE.md](docs/api/API_REFERENCE.md) — Endpoint specifications, JSON request/response schema.
 
 ---
 

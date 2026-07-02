@@ -1,0 +1,33 @@
+flowchart TD
+    subgraph Input ["Inputs"]
+        C["Candidate Record"]
+        J["Job Description"]
+    end
+
+    subgraph Scorer ["Evaluation Engine (TS Service)"]
+        F1["P(Qualified)\nSkills + Experience fit"]
+        F2["P(Available)\nTenure Stability & Intent"]
+        F3["P(Engageable)\nProfile Activity Level"]
+        F4["P(Legitimate)\nCompleteness + Verification"]
+        F5["P(Growth)\nCareer progression trajectory"]
+        F6["P(Scrappiness)\nSide projects + Initiative"]
+    end
+
+    subgraph Multiplier ["Math Processing"]
+        Mul["P(Hire) = P(Q) * P(A) * P(E) * P(L) * P(G) * P(S)"]
+    end
+
+    subgraph Penalty ["Zero-Killer / Override Rules"]
+        HP{"Honeypot\nDetected?"}
+        HP_Yes["Legitimate = 0.10\nScore Collapses"]
+        HP_No["Calculate Standard\nLegitimate score"]
+    end
+
+    C & J --> Scorer
+    F1 & F2 & F3 & F5 & F6 --> Multiplier
+    
+    F4 --> HP
+    HP -->|Yes| HP_Yes --> Multiplier
+    HP -->|No| HP_No --> Multiplier
+
+    Multiplier --> Output["🎯 Final Hire Probability\n(0 - 100%)"]

@@ -1,0 +1,20 @@
+flowchart TD
+    A["📄 Resume Upload\nCandidate uploads PDF/DOC"] 
+    --> B["📝 Resume Parsing\nText extraction & structure detection"]
+    --> C["🧠 Skill Extraction\nSkill tags identified + normalized"]
+    --> D["📊 Experience Analysis\nDuration parsing, role seniority"]
+    --> E["🔢 Semantic Embeddings\nFloat vector generated for semantic search"]
+
+    F["📋 Job Description Upload\nRecruiter posts JD"] 
+    --> G["🔍 JD Parsing\nRequirements, skills, seniority extracted"]
+    --> H["🔗 Job Embedding\nFloat vector generated for JD"]
+
+    E & H --> I["⚖️ Evidence Matching\nSkill-to-requirement comparison\nExact + Adjacent matches scored"]
+    
+    I --> J["📈 Learning Velocity\nCareer progression speed calculated"]
+    --> K["💎 Hidden Gem Detection\nAdjacent-skill candidates surfaced"]
+    --> L["🔒 Authenticity Check\nHoneypot detection + verification score"]
+    --> M["🎯 Confidence Score\nMultiplicative 6-factor P-score"]
+    --> N["🏆 Ranking Engine\nAll candidates sorted by hire probability"]
+    --> O["📊 Dashboard Rendering\nDNA charts, recruiter briefs, red flags"]
+    --> P["📤 Export XLSX\nRanked report with AI explanations"]

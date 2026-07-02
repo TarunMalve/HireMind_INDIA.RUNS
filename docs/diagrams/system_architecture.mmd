@@ -1,0 +1,51 @@
+graph TB
+    subgraph Client ["Client Layer (Next.js 15 App Router + React 19)"]
+        RD["Recruiter Dashboard"]
+        CD["Candidate Workspace"]
+        CL_Auth["Clerk Frontend SDK"]
+    end
+
+    subgraph Auth ["Authentication Provider (SaaS)"]
+        Clerk["Clerk User Directory"]
+    end
+
+    subgraph API ["API Layer (Express.js TypeScript)"]
+        AuthM["Auth Middleware\n(clerk-express JWT Verify)"]
+        JobsC["Job Controller"]
+        CandC["Candidate Controller"]
+        AppC["Application Controller"]
+        AIC["AI Controller"]
+    end
+
+    subgraph Engine ["AI & Analytics Engine"]
+        RE["6-Factor Ranking Engine\n(TS Service)"]
+        DNA["DNA Profiler\n(Radar Coordinates)"]
+        Adjacency["Skill Adjacency Dictionary"]
+        Roadmap["Roadmap Generator"]
+    end
+
+    subgraph DB ["Data Store (PostgreSQL via Prisma)"]
+        Prisma["Prisma Client"]
+        Schema["Postgres DB"]
+    end
+
+    %% Client authentication flow
+    RD & CD -->|1. Authenticate| CL_Auth
+    CL_Auth -->|2. Get Session Token| Clerk
+    Clerk -->|3. Return JWT| CL_Auth
+
+    %% Client requests to API
+    RD & CD -->|4. API Request\n(Bearer Token)| AuthM
+    AuthM -->|5. Verify Token| Clerk
+
+    %% Controllers
+    AuthM -->|6. Authorized Request| JobsC & CandC & AppC & AIC
+
+    %% Business logic and scoring
+    AppC & AIC -->|7. Score & Analyze| RE
+    RE -->|8. Lookup Adjacencies| Adjacency
+    AIC -->|9. DNA Coordinates| DNA
+
+    %% Persistence
+    JobsC & CandC & AppC & AIC -->|10. Database Reads/Writes| Prisma
+    Prisma --> Schema
